@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Práctica #2 — Tarjetas de Alumnos</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 740px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid #c7c6f0;
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .tag-time { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+
+    /* Section labels */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+
+    /* Step card */
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .step-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-family: var(--mono);
+    }
+    .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .step-body {
+      padding: 0 16px 14px 54px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+
+    /* Code */
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f0ec;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--text);
+    }
+    pre {
+      background: #1e1d1b;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+    pre code {
+      font-size: 12.5px;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #d4d0c8;
+      line-height: 1.65;
+    }
+    .code-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin: 10px 0 3px;
+    }
+
+    /* Spoiler */
+    .spoiler { margin-top: 10px; }
+    .btn-show {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      cursor: pointer;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-show:hover { background: var(--accent-bg); border-color: #c7c6f0; color: var(--accent); }
+    .btn-show .arrow { font-size: 9px; transition: transform 0.2s; }
+    .btn-show.open .arrow { transform: rotate(90deg); }
+    .spoiler-content { display: none; margin-top: 10px; animation: fadeIn 0.2s ease; }
+    .spoiler-content.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Notes */
+    .note {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: var(--warn-text);
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .note-info { background: var(--accent-bg); border-color: #c7c6f0; color: #3730a3; }
+    .note-green { background: var(--green-bg); border-color: #bbf7d0; color: #166534; }
+
+    /* Challenge */
+    .challenge {
+      background: var(--green-bg);
+      border: 1px solid #bbf7d0;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-top: 4px;
+    }
+    .challenge-title { font-size: 13.5px; font-weight: 500; color: var(--green); margin-bottom: 4px; }
+    .challenge p { font-size: 13px; color: #166534; }
+
+    /* Questions */
+    .questions { list-style: none; padding: 0; }
+    .question {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+      align-items: flex-start;
+    }
+    .question:last-child { border-bottom: none; }
+    .q-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--mono);
+      color: var(--muted);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Práctica #2</div>
+    <h1>🧩 Tarjetas de Alumnos</h1>
+    <div class="header-meta">
+      <span class="tag">props</span>
+      <span class="tag">map()</span>
+      <span class="tag">key</span>
+      <span class="tag">objeto como prop</span>
+      <span class="tag">CSS por componente</span>
+      <span class="tag">spread operator</span>
+      <span class="tag tag-time">⏱ 25–30 min</span>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section-label">⚙️ Setup del proyecto</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">01</div>
+      <div class="step-title">Crear el proyecto</div>
+    </div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm create vite@latest tarjetas-app -- --template react</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">02</div>
+      <div class="step-title">Entrar al proyecto</div>
+    </div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>cd tarjetas-app</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">03</div>
+      <div class="step-title">Iniciar el servidor</div>
+    </div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm run dev</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">04</div>
+      <div class="step-title">Limpiar archivos base</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>En <code>src/index.css</code> reemplaza todo por un reset básico</li>
+        <li>En <code>src/App.css</code> borra todo el contenido</li>
+        <li>En <code>src/App.jsx</code> deja solo el componente vacío</li>
+      </ul>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">src/index.css</div>
+          <pre><code>* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+          <div class="code-label">src/App.jsx</div>
+          <pre><code>function App() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Tarjetas App&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">05</div>
+      <div class="step-title">Crear la carpeta de componentes</div>
+    </div>
+    <div class="step-body">
+      <p>Dentro de <code>src/</code>, crea la carpeta <code>components/</code>.</p>
+    </div>
+  </div>
+
+  <!-- Ejercicio -->
+  <div class="section-label">📋 Pasos del ejercicio</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">06</div>
+      <div class="step-title">Crear el archivo del componente</div>
+    </div>
+    <div class="step-body">
+      <p>Dentro de <code>src/components/</code> crea el archivo <code>TarjetaAlumno.jsx</code>.<br>
+      Escribe <code>rfce</code> + Tab para generar la estructura base.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">07</div>
+      <div class="step-title">Definir las props del componente</div>
+    </div>
+    <div class="step-body">
+      <p>El componente recibe tres datos. Desestructúralos directamente en los parámetros de la función.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>function TarjetaAlumno({ nombre, lenguaje, activo }) {
+  return (
+    &lt;div className="tarjeta"&gt;
+      &lt;h3&gt;{nombre}&lt;/h3&gt;
+      &lt;p&gt;Lenguaje favorito: {lenguaje}&lt;/p&gt;
+      &lt;p&gt;Estado: {activo ? 'Activo' : 'Inactivo'}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+          <div class="note note-info">
+            Las props son de solo lectura — el componente puede mostrarlas pero nunca modificarlas directamente.
+          </div>
+          <div class="note note-info">
+            El operador ternario <code>activo ? 'Activo' : 'Inactivo'</code> es la forma de hacer condicionales dentro de JSX.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">08</div>
+      <div class="step-title">Exportar el componente</div>
+    </div>
+    <div class="step-body">
+      <p>Al final del archivo, exporta el componente como default.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>export default TarjetaAlumno;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">09</div>
+      <div class="step-title">Crear el CSS del componente</div>
+    </div>
+    <div class="step-body">
+      <p>Crea <code>src/components/TarjetaAlumno.css</code> e impórtalo al inicio de <code>TarjetaAlumno.jsx</code>.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar CSS</button>
+        <div class="spoiler-content">
+          <div class="code-label">TarjetaAlumno.jsx — línea 1</div>
+          <pre><code>import './TarjetaAlumno.css';</code></pre>
+          <div class="code-label">TarjetaAlumno.css</div>
+          <pre><code>.tarjeta {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  max-width: 300px;
+}
+
+.tarjeta h3 {
+  margin: 0 0 8px 0;
+}
+
+.tarjeta p {
+  margin: 4px 0;
+  color: #555;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">10</div>
+      <div class="step-title">Configurar App.jsx</div>
+    </div>
+    <div class="step-body">
+      <p>Importa el CSS, importa el componente y define el array de alumnos con sus datos.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import './App.css';
+import TarjetaAlumno from './components/TarjetaAlumno';
+
+function App() {
+
+  const alumnos = [
+    { id: 1, nombre: 'Ana García',    lenguaje: 'JavaScript', activo: true  },
+    { id: 2, nombre: 'Luis Martínez', lenguaje: 'Python',     activo: false },
+    { id: 3, nombre: 'María López',   lenguaje: 'React',      activo: true  },
+    { id: 4, nombre: 'Carlos Ruiz',   lenguaje: 'TypeScript', activo: true  },
+  ];
+
+  return (
+    &lt;div className="app-contenedor"&gt;
+      &lt;h1&gt;Lista de Alumnos&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">11</div>
+      <div class="step-title">Agregar el CSS de App</div>
+    </div>
+    <div class="step-body">
+      <p>En <code>src/App.css</code>, agrega los estilos del contenedor principal.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar CSS</button>
+        <div class="spoiler-content">
+          <pre><code>.app-contenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">12</div>
+      <div class="step-title">Usar .map() para renderizar las tarjetas</div>
+    </div>
+    <div class="step-body">
+      <p>Actualiza el <code>return</code> de <code>App</code> para iterar el array y renderizar un componente por cada alumno.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>return (
+  &lt;div className="app-contenedor"&gt;
+    &lt;h1&gt;Lista de Alumnos&lt;/h1&gt;
+    {alumnos.map((alumno) =&gt; (
+      &lt;TarjetaAlumno
+        key={alumno.id}
+        nombre={alumno.nombre}
+        lenguaje={alumno.lenguaje}
+        activo={alumno.activo}
+      /&gt;
+    ))}
+  &lt;/div&gt;
+);</code></pre>
+          <div class="note">
+            ⚠️ <code>key</code> debe ser único y estable. Usamos <code>alumno.id</code> en lugar de <code>index</code> porque si el array cambia de orden, React puede confundirse con el índice.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">13</div>
+      <div class="step-title">Refactorizar con spread operator</div>
+    </div>
+    <div class="step-body">
+      <p>Una vez que funcione, simplifica el <code>.map()</code> usando <code>spread</code> para pasar todas las props de golpe.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>{alumnos.map((alumno) =&gt; (
+  &lt;TarjetaAlumno key={alumno.id} {...alumno} /&gt;
+))}</code></pre>
+          <div class="note note-green">
+            <code>{...alumno}</code> es equivalente a escribir cada prop por separado. Si mañana agregas un campo nuevo al objeto, llega automáticamente al componente sin tocar el JSX.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra</div>
+  <div class="challenge">
+    <div class="challenge-title">Campo edad</div>
+    <p>Agrega un campo <code>edad</code> al array y muéstralo en la tarjeta. Solo requiere dos cambios: agregar <code>edad</code> a cada objeto del array y mostrarlo en el JSX del componente.</p>
+    <div class="spoiler" style="margin-top: 12px;">
+      <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar solución</button>
+      <div class="spoiler-content">
+        <div class="code-label">Array en App.jsx — agregar edad a cada objeto:</div>
+        <pre><code>{ id: 1, nombre: 'Ana García',    lenguaje: 'JavaScript', activo: true,  edad: 22 },
+{ id: 2, nombre: 'Luis Martínez', lenguaje: 'Python',     activo: false, edad: 25 },
+{ id: 3, nombre: 'María López',   lenguaje: 'React',      activo: true,  edad: 20 },
+{ id: 4, nombre: 'Carlos Ruiz',   lenguaje: 'TypeScript', activo: true,  edad: 23 },</code></pre>
+        <div class="code-label">TarjetaAlumno.jsx — agregar la prop y mostrarla:</div>
+        <pre><code>function TarjetaAlumno({ nombre, lenguaje, activo, edad }) {
+  return (
+    &lt;div className="tarjeta"&gt;
+      &lt;h3&gt;{nombre}&lt;/h3&gt;
+      &lt;p&gt;Lenguaje favorito: {lenguaje}&lt;/p&gt;
+      &lt;p&gt;Edad: {edad} años&lt;/p&gt;
+      &lt;p&gt;Estado: {activo ? 'Activo' : 'Inactivo'}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        <div class="note note-green">
+          Si usas <code>{...alumno}</code> en el <code>.map()</code>, la prop <code>edad</code> llega automáticamente sin modificar el JSX de <code>App</code>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preguntas -->
+  <div class="section-label">❓ Preguntas para reflexionar</div>
+  <ul class="questions">
+    <li class="question">
+      <div class="q-num">1</div>
+      <div class="q-text">¿Qué pasa si quitamos el <code>key</code> de cada tarjeta? ¿Qué advertencia aparece en consola?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">2</div>
+      <div class="q-text">¿Por qué usamos <code>alumno.id</code> como <code>key</code> en lugar de <code>index</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">3</div>
+      <div class="q-text">¿Qué diferencia hay entre pasar las props una por una vs usar <code>{...alumno}</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">4</div>
+      <div class="q-text">¿Por qué las props son de solo lectura?</div>
+    </li>
+  </ul>
+
+</div>
+
+<script>
+  function toggle(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.toggle('visible');
+    btn.classList.toggle('open', isOpen);
+    const label = btn.querySelector('.arrow').nextSibling.textContent.replace(/^\s*(Mostrar|Ocultar)\s+/, '').trim();
+    btn.querySelector('.arrow').nextSibling.textContent = ' ' + (isOpen ? 'Ocultar ' : 'Mostrar ') + label;
+  }
+</script>
+</body>
+</html>
