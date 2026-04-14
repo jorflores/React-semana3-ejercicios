@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarea — Agenda de Contactos</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+      --red-text: #991b1b;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 740px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 6px;
+    }
+    .header h1 { font-size: 26px; font-weight: 600; margin-bottom: 10px; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tag {
+      font-size: 11.5px; font-family: var(--mono);
+      background: var(--accent-bg); color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px; padding: 2px 8px;
+    }
+    .tag-gray { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+    .tag-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+
+    /* Section label */
+    .section-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); margin: 36px 0 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+
+    /* Prose block */
+    .prose {
+      font-size: 14px; color: var(--text); line-height: 1.8;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      margin-bottom: 12px;
+    }
+    .prose p { margin-bottom: 10px; }
+    .prose p:last-child { margin-bottom: 0; }
+
+    /* Requirement cards */
+    .req-list { display: flex; flex-direction: column; gap: 10px; }
+    .req {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .req-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .icon-purple { background: var(--accent-bg); }
+    .icon-green  { background: var(--green-bg); }
+    .icon-amber  { background: #faeeda; }
+    .req-body { flex: 1; }
+    .req-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .req-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .req-desc code {
+      font-family: var(--mono); font-size: 11.5px;
+      background: #f1f0ec; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--text);
+    }
+
+    /* Concept pills */
+    .concept-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .pill {
+      font-size: 11px; font-family: var(--mono);
+      background: var(--accent-bg); color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 20px; padding: 3px 10px;
+    }
+
+    /* Notes */
+    .note {
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 13px; line-height: 1.6; margin: 12px 0;
+    }
+    .note-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); }
+    .note-green { background: var(--green-bg); border: 1px solid var(--green-border); color: #166534; }
+    .note-info  { background: var(--accent-bg); border: 1px solid var(--accent-border); color: #3730a3; }
+
+    /* Deliverable checklist */
+    .checklist { list-style: none; padding: 0; margin: 0; }
+    .check-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+      font-size: 13.5px; color: var(--text);
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-box {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .check-text { line-height: 1.55; }
+    .check-text code {
+      font-family: var(--mono); font-size: 11.5px;
+      background: #f1f0ec; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--text);
+    }
+
+    /* Grading */
+    .grade-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .grade-table th {
+      text-align: left; font-weight: 500; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted); padding: 8px 12px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .grade-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+    .grade-table tr:last-child td { border-bottom: none; }
+    .grade-table td:last-child { text-align: right; font-family: var(--mono); font-weight: 500; color: var(--accent); }
+    .grade-total td { font-weight: 500; border-top: 1.5px solid var(--border); }
+    .grade-total td:last-child { color: var(--text); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Semana 3 · Tarea integradora</div>
+    <h1>📒 Agenda de Contactos</h1>
+    <div class="header-meta">
+      <span class="tag">React</span>
+      <span class="tag">Vite</span>
+      <span class="tag">TailwindCSS</span>
+      <span class="tag-gray tag">⏱ Entrega en 1 semana</span>
+      <span class="tag-green tag">Individual</span>
+    </div>
+  </div>
+
+  <!-- Descripción -->
+  <div class="section-label">📋 Descripción</div>
+  <div class="prose">
+    <p>Construye una aplicación de agenda de contactos en React donde el usuario pueda <strong>agregar</strong> y <strong>eliminar</strong> contactos desde la misma pantalla.</p>
+    <p>La app debe tener al menos dos componentes separados además de <code>App.jsx</code>: uno para el formulario y otro para mostrar cada contacto. El estado de todos los contactos debe vivir en <code>App.jsx</code>.</p>
+    <p>Puedes usar el diseño visual que quieras — lo importante es que funcione correctamente y que el código esté organizado en componentes.</p>
+  </div>
+
+  <!-- Mockup de referencia -->
+  <div class="section-label">🖼️ Resultado esperado</div>
+  <div style="background: #f1f0ec; border-radius: 12px; padding: 24px; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
+
+    <!-- Phone mockup -->
+    <div style="background: #ffffff; border: 1px solid #d1cfc7; border-radius: 20px; width: 280px; overflow: hidden; flex-shrink: 0; margin: 0 auto;">
+
+      <div style="background: #3d3bcc; padding: 16px 18px 14px;">
+        <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 2px;">Mi agenda</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">4 contactos guardados</div>
+      </div>
+
+      <div style="padding: 12px 14px; border-bottom: 1px solid #ede9e2; display: flex; flex-direction: column; gap: 7px;">
+        <div style="border: 1px solid #d1cfc7; border-radius: 7px; padding: 7px 9px; font-size: 12px; color: #9b9690; background: #f7f6f2;">Nombre completo</div>
+        <div style="border: 1px solid #d1cfc7; border-radius: 7px; padding: 7px 9px; font-size: 12px; color: #9b9690; background: #f7f6f2;">Teléfono</div>
+        <div style="border: 1px solid #d1cfc7; border-radius: 7px; padding: 7px 9px; font-size: 12px; color: #9b9690; background: #f7f6f2; display: flex; justify-content: space-between;"><span>Categoría: Trabajo</span><span style="font-size:10px;">▼</span></div>
+        <div style="background: #3d3bcc; color: #fff; border-radius: 7px; padding: 8px; font-size: 12px; font-weight: 500; text-align: center;">+ Agregar contacto</div>
+      </div>
+
+      <div style="padding: 8px 14px; border-bottom: 1px solid #ede9e2; display: flex; gap: 5px; flex-wrap: wrap;">
+        <div style="font-size: 11px; border-radius: 20px; padding: 3px 9px; background: #3d3bcc; color: #fff; font-weight: 500;">Todos</div>
+        <div style="font-size: 11px; border-radius: 20px; padding: 3px 9px; border: 1px solid #d1cfc7; color: #6b6860;">Trabajo</div>
+        <div style="font-size: 11px; border-radius: 20px; padding: 3px 9px; border: 1px solid #d1cfc7; color: #6b6860;">Familia</div>
+        <div style="font-size: 11px; border-radius: 20px; padding: 3px 9px; border: 1px solid #d1cfc7; color: #6b6860;">Amigo</div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #ede9e2;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#eeeef9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#3c3489;flex-shrink:0;">AG</div>
+          <div style="flex:1;">
+            <div style="font-size:12.5px;font-weight:500;color:#1a1917;">Ana García</div>
+            <div style="font-size:11px;color:#6b6860;">55 1234 5678</div>
+          </div>
+          <span style="font-size:10px;border-radius:20px;padding:2px 7px;background:#e6f1fb;color:#0c447c;font-weight:500;flex-shrink:0;">Trabajo</span>
+          <span style="font-size:12px;color:#b4b2a9;padding:2px;">✕</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #ede9e2;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#e1f5ee;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#085041;flex-shrink:0;">LM</div>
+          <div style="flex:1;">
+            <div style="font-size:12.5px;font-weight:500;color:#1a1917;">Luis Martínez</div>
+            <div style="font-size:11px;color:#6b6860;">55 9876 5432</div>
+          </div>
+          <span style="font-size:10px;border-radius:20px;padding:2px 7px;background:#e1f5ee;color:#085041;font-weight:500;flex-shrink:0;">Familia</span>
+          <span style="font-size:12px;color:#b4b2a9;padding:2px;">✕</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #ede9e2;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#faece7;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#712b13;flex-shrink:0;">ML</div>
+          <div style="flex:1;">
+            <div style="font-size:12.5px;font-weight:500;color:#1a1917;">María López</div>
+            <div style="font-size:11px;color:#6b6860;">55 5555 0101</div>
+          </div>
+          <span style="font-size:10px;border-radius:20px;padding:2px 7px;background:#eeeef9;color:#3c3489;font-weight:500;flex-shrink:0;">Amigo</span>
+          <span style="font-size:12px;color:#b4b2a9;padding:2px;">✕</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#633806;flex-shrink:0;">CR</div>
+          <div style="flex:1;">
+            <div style="font-size:12.5px;font-weight:500;color:#1a1917;">Carlos Ruiz</div>
+            <div style="font-size:11px;color:#6b6860;">55 3344 7788</div>
+          </div>
+          <span style="font-size:10px;border-radius:20px;padding:2px 7px;background:#e6f1fb;color:#0c447c;font-weight:500;flex-shrink:0;">Trabajo</span>
+          <span style="font-size:12px;color:#b4b2a9;padding:2px;">✕</span>
+        </div>
+      </div>
+
+      <div style="padding:9px 14px;font-size:11px;color:#6b6860;border-top:1px solid #ede9e2;text-align:center;">mostrando 4 de 4 contactos</div>
+    </div>
+
+    <!-- Anotaciones -->
+    <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="background:#ffffff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">1</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">Formulario</strong> con nombre, teléfono y selector de categoría. Se limpia al agregar.</div>
+      </div>
+      <div style="background:#ffffff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">2</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">ContactoCard</strong> muestra iniciales, teléfono y badge de color según categoría.</div>
+      </div>
+      <div style="background:#ffffff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">3</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">Estado en App.jsx</strong> — array de contactos, agregar y eliminar. Contador se actualiza solo.</div>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#faeeda;border:1px solid #f0c97a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#633806;flex-shrink:0;margin-top:1px;">+</div>
+        <div style="font-size:12px;color:#92400e;line-height:1.5;"><strong style="font-weight:500;">Reto extra</strong> — botones de filtro por categoría. Requiere un segundo estado para el filtro activo.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Qué debe hacer -->
+  <div class="section-label">✅ Requisitos funcionales</div>
+  <div class="req-list">
+
+    <div class="req">
+      <div class="req-icon icon-purple">📝</div>
+      <div class="req-body">
+        <div class="req-title">Formulario para agregar contactos</div>
+        <div class="req-desc">
+          Debe tener al menos dos campos: <strong>nombre</strong> y <strong>teléfono</strong>. Al enviar, el nuevo contacto aparece en la lista. El formulario se limpia automáticamente después de agregar.
+          <div class="concept-row">
+            <span class="pill">useState</span>
+            <span class="pill">onChange</span>
+            <span class="pill">onSubmit</span>
+            <span class="pill">e.preventDefault()</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-purple">🃏</div>
+      <div class="req-body">
+        <div class="req-title">Lista de contactos con tarjetas</div>
+        <div class="req-desc">
+          Cada contacto se muestra en su propia tarjeta usando un componente separado. Los datos llegan via props. Se renderizan usando <code>.map()</code> con un <code>key</code> único por tarjeta.
+          <div class="concept-row">
+            <span class="pill">props</span>
+            <span class="pill">map()</span>
+            <span class="pill">key</span>
+            <span class="pill">componente</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-green">🗑️</div>
+      <div class="req-body">
+        <div class="req-title">Botón para eliminar contactos</div>
+        <div class="req-desc">
+          Cada tarjeta tiene un botón que elimina ese contacto de la lista. Usa <code>.filter()</code> para crear el nuevo array sin el contacto eliminado.
+          <div class="concept-row">
+            <span class="pill">filter()</span>
+            <span class="pill">onClick</span>
+            <span class="pill">prop de función</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-amber">🔢</div>
+      <div class="req-body">
+        <div class="req-title">Contador de contactos</div>
+        <div class="req-desc">
+          Muestra en algún lugar de la pantalla cuántos contactos hay guardados. El número se actualiza automáticamente cuando se agrega o elimina un contacto.
+          <div class="concept-row">
+            <span class="pill">.length</span>
+            <span class="pill">re-render</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note note-warn" style="margin-top: 16px;">
+    ⚠️ El formulario no debe agregar un contacto si el campo de nombre está vacío. Valida con <code>trim()</code> antes de agregar.
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra (opcional)</div>
+  <div class="card">
+    <div style="font-size: 14px; font-weight: 500; margin-bottom: 6px;">Filtro por categoría</div>
+    <div style="font-size: 13px; color: var(--muted); line-height: 1.65;">
+      Agrega un tercer campo al formulario para que el usuario elija una categoría: <strong>Trabajo</strong>, <strong>Familia</strong> o <strong>Amigo</strong>. Muestra un badge de color diferente en cada tarjeta según la categoría. Agrega botones para filtrar la lista y mostrar solo los contactos de una categoría.
+    </div>
+    <div class="note note-info" style="margin-top: 10px; margin-bottom: 0;">
+      Pista: necesitarás un segundo estado en <code>App.jsx</code> para guardar el filtro activo, y usar <code>.filter()</code> antes del <code>.map()</code>.
+    </div>
+  </div>
+
+  <!-- Estructura de archivos -->
+  <div class="section-label">📁 Estructura esperada</div>
+  <div class="card" style="font-family: var(--mono); font-size: 12.5px; line-height: 2; color: var(--muted);">
+    <span style="color: var(--text);">src/</span><br>
+    &nbsp;&nbsp;<span style="color: var(--text);">components/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--accent);">ContactoForm.jsx</span> &nbsp;← formulario<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--accent);">ContactoCard.jsx</span> &nbsp;← tarjeta individual<br>
+    &nbsp;&nbsp;<span style="color: var(--text);">App.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← estado global<br>
+    &nbsp;&nbsp;<span style="color: var(--text);">App.css</span><br>
+    &nbsp;&nbsp;<span style="color: var(--text);">index.css</span>
+  </div>
+  <div class="note note-info" style="margin-top: 10px;">
+    Puedes agregar más componentes si lo consideras necesario — como un <code>ContactoList.jsx</code> que agrupe la lista. No es obligatorio pero es buena práctica.
+  </div>
+
+  <!-- Componentes sugeridos -->
+  <div class="section-label">🧩 Componentes sugeridos</div>
+
+  <div class="prose" style="margin-bottom: 12px;">
+    <p>Para esta tarea necesitas crear <strong>mínimo 2 componentes</strong> además de <code>App.jsx</code>. Aquí te describimos qué debería hacer cada uno — tú decides cómo programarlos.</p>
+  </div>
+
+  <div class="req-list">
+
+    <div class="req">
+      <div class="req-icon icon-purple" style="font-size:15px;">1️⃣</div>
+      <div class="req-body">
+        <div class="req-title"><code>ContactoForm.jsx</code> — el formulario</div>
+        <div class="req-desc">
+          Contiene los inputs y el botón de agregar. Maneja su propio estado interno para los campos de texto. Cuando el usuario hace submit, llama a una función que le pasa el padre (<code>App.jsx</code>) para agregar el contacto al array.<br><br>
+          <strong>Props que recibe:</strong> una función <code>onAgregar</code> que viene de <code>App.jsx</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-purple" style="font-size:15px;">2️⃣</div>
+      <div class="req-body">
+        <div class="req-title"><code>ContactoCard.jsx</code> — la tarjeta de un contacto</div>
+        <div class="req-desc">
+          Muestra la información de un solo contacto: nombre, teléfono, y un botón de eliminar. No tiene estado propio — solo recibe datos via props y llama a funciones del padre cuando el usuario interactúa.<br><br>
+          <strong>Props que recibe:</strong> <code>nombre</code>, <code>telefono</code>, y una función <code>onEliminar</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="req" style="border: 1px dashed var(--border); background: var(--bg);">
+      <div class="req-icon icon-amber" style="font-size:15px;">3️⃣</div>
+      <div class="req-body">
+        <div class="req-title"><code>ContactoList.jsx</code> — la lista <span style="font-size:11px; font-weight:400; color: var(--muted);">(opcional)</span></div>
+        <div class="req-desc">
+          Si quieres separar mejor las responsabilidades, puedes crear un tercer componente que reciba el array de contactos y se encargue de renderizar las tarjetas con <code>.map()</code>. Esto deja <code>App.jsx</code> más limpio.<br><br>
+          <strong>Props que recibe:</strong> <code>contactos</code> (el array) y <code>onEliminar</code> (la función).
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note note-info" style="margin-top: 12px;">
+    Una buena regla general: si un componente empieza a tener más de 50 líneas, probablemente se puede dividir en dos. Para esta tarea, con 2 o 3 componentes es más que suficiente.
+  </div>
+
+  <!-- Checklist de entrega -->
+  <div class="section-label">📤 Checklist de entrega</div>
+  <div class="card">
+    <ul class="checklist">
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El proyecto corre con <code>npm run dev</code> sin errores en consola</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Puedo agregar un contacto nuevo desde el formulario</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El formulario se limpia después de agregar</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">No se puede agregar un contacto con nombre vacío</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Cada contacto tiene su propio botón de eliminar y funciona</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El contador de contactos refleja el número correcto en todo momento</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Hay al menos dos componentes además de <code>App.jsx</code></div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El estado de los contactos vive en <code>App.jsx</code></div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Subí el proyecto a un repositorio de GitHub y entregué el link</div></li>
+    </ul>
+  </div>
+
+  <!-- Rúbrica -->
+  <div class="section-label">📊 Rúbrica</div>
+  <div class="card" style="padding: 0 4px;">
+    <table class="grade-table">
+      <thead>
+        <tr>
+          <th style="padding-left: 16px;">Criterio</th>
+          <th style="text-align: right; padding-right: 16px;">Puntos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding-left: 16px;">Formulario funcional con validación</td>
+          <td>27 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;">Lista de contactos renderizada con <code>.map()</code> y componente</td>
+          <td>27 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;">Eliminar contacto con <code>.filter()</code></td>
+          <td>22 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;">Contador actualizado automáticamente</td>
+          <td>12 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;">Estructura en componentes separados</td>
+          <td>12 pts</td>
+        </tr>
+        <tr class="grade-total">
+          <td style="padding-left: 16px;">Total</td>
+          <td style="padding-right: 4px;">100 pts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-green" style="margin-top: 16px;">
+    El reto extra (filtro por categoría) otorga hasta 10 puntos adicionales sobre la calificación final.
+  </div>
+
+</div>
+</body>
+</html>
