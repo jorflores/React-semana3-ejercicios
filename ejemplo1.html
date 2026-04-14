@@ -41,6 +41,18 @@
       margin: 0 auto;
     }
 
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
+
     /* ── Header ── */
     .header {
       border-bottom: 1.5px solid var(--border);
@@ -267,6 +279,8 @@
 </head>
 <body>
 <div class="page">
+
+  <a href="index.html" class="back-link">← Volver a ejercicios</a>
 
   <!-- Header -->
   <div class="header">

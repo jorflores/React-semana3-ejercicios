@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Práctica #3 — To-do List</title>
+  <title>Ejemplo 3 — To-do List</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,6 +38,18 @@
     }
 
     .page { max-width: 740px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
 
     /* Header */
     .header {
@@ -175,9 +187,11 @@
 <body>
 <div class="page">
 
+  <a href="index.html" class="back-link">← Volver a ejercicios</a>
+
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">Práctica #3</div>
+    <div class="header-eyebrow">Ejemplo 3</div>
     <h1>✅ To-do List</h1>
     <div class="header-meta">
       <span class="tag">useState con arrays</span>

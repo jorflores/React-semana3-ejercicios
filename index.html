@@ -162,14 +162,6 @@
       transform: translateX(3px);
     }
 
-    /* ── Placeholder card (ejemplo 3) ── */
-    .card-placeholder {
-      opacity: 0.45;
-      pointer-events: none;
-      cursor: default;
-    }
-    .card-placeholder:hover { transform: none; box-shadow: none; border-color: var(--border); }
-
     /* ── Footer ── */
     footer {
       text-align: center;
@@ -183,7 +175,7 @@
 <body>
 
   <header>
-    <div class="header-eyebrow">Curso de React</div>
+    <div class="header-eyebrow">Curso de React - TC2005B.501</div>
     <h1>Ejercicios</h1>
     <p>Selecciona un ejercicio para comenzar.</p>
   </header>
@@ -224,13 +216,18 @@
         <div class="card-arrow">→</div>
       </a>
 
-      <a href="ejemplo3.html" class="card card-placeholder">
+      <a href="ejemplo3.html" class="card">
         <div class="card-num">03</div>
         <div class="card-body">
-          <div class="card-title">🔜 Próximamente</div>
-          <div class="card-desc">Este ejercicio aún no está disponible.</div>
+          <div class="card-title">✅ Lista de tareas (To-do)</div>
+          <div class="card-desc">Estado en el padre, formularios controlados y Tailwind para armar una lista interactiva.</div>
           <div class="card-tags">
-            <span class="tag-gray tag">Pendiente</span>
+            <span class="tag">useState</span>
+            <span class="tag">arrays</span>
+            <span class="tag">props</span>
+            <span class="tag">map()</span>
+            <span class="tag">TailwindCSS</span>
+            <span class="tag-gray tag">⏱ 35–40 min</span>
           </div>
         </div>
         <div class="card-arrow">→</div>
