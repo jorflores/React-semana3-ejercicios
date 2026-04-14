@@ -252,8 +252,8 @@
   <div class="section-label">🧩 Arquitectura de componentes</div>
   <div class="diagram-section">
     <div class="diagram-tabs">
-      <button class="diagram-tab active" onclick="showDiagram('arbol')">Árbol de componentes</button>
-      <button class="diagram-tab" onclick="showDiagram('visual')">Vista en el navegador</button>
+      <button type="button" class="diagram-tab active" onclick="showDiagram('arbol', this)">Árbol de componentes</button>
+      <button type="button" class="diagram-tab" onclick="showDiagram('visual', this)">Vista en el navegador</button>
     </div>
 
     <!-- Panel 1: Árbol -->
@@ -627,6 +627,9 @@ export default TodoForm;</code></pre>
       <div class="spoiler">
         <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
         <div class="spoiler-content">
+          <div class="note note-info">
+            <code>TodoForm</code> espera <code>onAgregar</code> (paso 11) y <code>TodoList</code> espera <code>onToggle</code> (paso 10). Por ahora usa handlers vacíos; en el paso 13 conectarás <code>agregarTarea</code> y en el paso 14 <code>toggleTarea</code>.
+          </div>
           <pre><code>import { useState } from 'react';
 import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
@@ -641,8 +644,8 @@ function App() {
   return (
     &lt;div className="max-w-md mx-auto mt-10 p-6"&gt;
       &lt;h1 className="text-2xl font-bold mb-6"&gt;Mi lista de tareas&lt;/h1&gt;
-      &lt;TodoForm /&gt;
-      &lt;TodoList tareas={tareas} /&gt;
+      &lt;TodoForm onAgregar={() =&gt; {}} /&gt;
+      &lt;TodoList tareas={tareas} onToggle={() =&gt; {}} /&gt;
     &lt;/div&gt;
   );
 }
@@ -660,6 +663,9 @@ export default App;</code></pre>
       <div class="spoiler">
         <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
         <div class="spoiler-content">
+          <div class="note note-info">
+            Sustituye el <code>onAgregar={() =&gt; {}}</code> del paso 12 por <code>onAgregar={agregarTarea}</code>.
+          </div>
           <pre><code>function agregarTarea(texto) {
   const nuevaTarea = {
     id: Date.now(),
@@ -689,6 +695,9 @@ export default App;</code></pre>
       <div class="spoiler">
         <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
         <div class="spoiler-content">
+          <div class="note note-info">
+            Sustituye el <code>onToggle={() =&gt; {}}</code> del paso 12 por <code>onToggle={toggleTarea}</code>.
+          </div>
           <pre><code>function toggleTarea(id) {
   setTareas(tareas.map((tarea) =>
     tarea.id === id ? { ...tarea, completada: !tarea.completada } : tarea
@@ -713,25 +722,57 @@ export default App;</code></pre>
     <div class="spoiler" style="margin-top: 12px;">
       <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar solución</button>
       <div class="spoiler-content">
-        <div class="code-label">App.jsx — nueva función:</div>
+        <div class="code-label">App.jsx — nueva función y prop en la lista:</div>
         <pre><code>function eliminarTarea(id) {
-  setTareas(tareas.filter((tarea) => tarea.id !== id));
-}</code></pre>
-        <div class="code-label">TodoList.jsx — pasar la prop:</div>
-        <pre><code>&lt;TodoItem
-  key={tarea.id}
-  texto={tarea.texto}
-  completada={tarea.completada}
-  onToggle={() =&gt; onToggle(tarea.id)}
-  onEliminar={() =&gt; onEliminar(tarea.id)}
+  setTareas(tareas.filter((tarea) =&gt; tarea.id !== id));
+}
+
+// En el return, pasa también onEliminar:
+&lt;TodoList
+  tareas={tareas}
+  onToggle={toggleTarea}
+  onEliminar={eliminarTarea}
 /&gt;</code></pre>
-        <div class="code-label">TodoItem.jsx — agregar el botón:</div>
-        <pre><code>&lt;button
-  onClick={onEliminar}
-  className="ml-auto text-red-400 hover:text-red-600"
-&gt;
-  ✕
-&lt;/button&gt;</code></pre>
+        <div class="code-label">TodoList.jsx — recibir la prop y pasarla al ítem:</div>
+        <pre><code>function TodoList({ tareas, onToggle, onEliminar }) {
+  return (
+    &lt;div&gt;
+      {tareas.map((tarea) =&gt; (
+        &lt;TodoItem
+          key={tarea.id}
+          texto={tarea.texto}
+          completada={tarea.completada}
+          onToggle={() =&gt; onToggle(tarea.id)}
+          onEliminar={() =&gt; onEliminar(tarea.id)}
+        /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}</code></pre>
+        <div class="code-label">TodoItem.jsx — recibir la prop y agregar el botón:</div>
+        <pre><code>function TodoItem({ texto, completada, onToggle, onEliminar }) {
+  return (
+    &lt;div className="flex items-center gap-3 p-3 border rounded-lg mb-2"&gt;
+      &lt;input
+        type="checkbox"
+        checked={completada}
+        onChange={onToggle}
+        className="w-4 h-4"
+      /&gt;
+      &lt;span className={completada ? 'line-through text-gray-400' : ''}&gt;
+        {texto}
+      &lt;/span&gt;
+      &lt;button
+        type="button"
+        onClick={onEliminar}
+        className="ml-auto text-red-400 hover:text-red-600"
+        aria-label="Eliminar tarea"
+      &gt;
+        ✕
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
         <div class="note note-green">
           <code>.filter()</code> devuelve un nuevo array con todas las tareas excepto la que tiene el <code>id</code> recibido. El original nunca se modifica.
         </div>
@@ -768,11 +809,11 @@ export default App;</code></pre>
 
 <script>
 
-  function showDiagram(id) {
+  function showDiagram(id, tabBtn) {
     document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('panel-' + id).classList.add('active');
-    event.target.classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
   }
   function toggle(btn) {
     const content = btn.nextElementSibling;

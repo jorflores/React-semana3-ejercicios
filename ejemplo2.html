@@ -301,8 +301,8 @@
   <div class="section-label">🧩 Arquitectura de componentes</div>
   <div class="diagram-section">
     <div class="diagram-tabs">
-      <button class="diagram-tab active" onclick="showDiagram('arbol')">Árbol de componentes</button>
-      <button class="diagram-tab" onclick="showDiagram('visual')">Vista en el navegador</button>
+      <button type="button" class="diagram-tab active" onclick="showDiagram('arbol', this)">Árbol de componentes</button>
+      <button type="button" class="diagram-tab" onclick="showDiagram('visual', this)">Vista en el navegador</button>
     </div>
 
     <!-- Panel 1: Árbol -->
@@ -315,7 +315,7 @@
           <div class="cbox-sub">define el array de alumnos</div>
         </div>
         <div class="tree-vline"></div>
-        <div class="prop-label">key · nombre · lenguaje · activo</div>
+        <div class="prop-label">key en la lista · props al hijo: nombre · lenguaje · activo</div>
         <div style="font-family:var(--mono);font-size:10px;color:#7F77DD;text-align:center;margin-bottom:2px;">via .map() — uno por alumno</div>
         <div class="tree-vline"></div>
 
@@ -451,12 +451,15 @@
   <div class="step">
     <div class="step-header">
       <div class="step-num">03</div>
-      <div class="step-title">Iniciar el servidor</div>
+      <div class="step-title">Instalar dependencias e iniciar el servidor</div>
     </div>
     <div class="step-body">
+      <p>La primera vez, instala paquetes dentro de la carpeta del proyecto. Luego levanta el servidor de desarrollo.</p>
       <div class="spoiler">
-        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comandos</button>
         <div class="spoiler-content">
+          <pre><code>npm install</code></pre>
+          <div class="note">⚠️ Espera a que termine <code>npm install</code> antes de ejecutar el siguiente comando.</div>
           <pre><code>npm run dev</code></pre>
         </div>
       </div>
@@ -522,7 +525,7 @@ export default App;</code></pre>
     </div>
     <div class="step-body">
       <p>Dentro de <code>src/components/</code> crea el archivo <code>TarjetaAlumno.jsx</code>.<br>
-      Escribe <code>rfce</code> + Tab para generar la estructura base.</p>
+      Si usas VS Code con snippets (p. ej. ES7+), puedes escribir <code>rfce</code> + Tab para generar la estructura base; si no, crea una función <code>TarjetaAlumno</code> que devuelva un <code>&lt;div&gt;</code> vacío y ajusta el nombre del componente.</p>
     </div>
   </div>
 
@@ -707,7 +710,7 @@ export default App;</code></pre>
   &lt;TarjetaAlumno key={alumno.id} {...alumno} /&gt;
 ))}</code></pre>
           <div class="note note-green">
-            <code>{...alumno}</code> es equivalente a escribir cada prop por separado. Si mañana agregas un campo nuevo al objeto, llega automáticamente al componente sin tocar el JSX.
+            <code>{...alumno}</code> expande todas las propiedades del objeto como props (incluido <code>id</code>). El componente solo usa las que desestructura; el resto se ignora. Si agregas un campo nuevo al objeto y lo muestras en la tarjeta, no hace falta cambiar el <code>.map()</code> en <code>App</code>.
           </div>
         </div>
       </div>
@@ -770,11 +773,11 @@ export default App;</code></pre>
 
 <script>
 
-  function showDiagram(id) {
+  function showDiagram(id, tabBtn) {
     document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('panel-' + id).classList.add('active');
-    event.target.classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
   }
   function toggle(btn) {
     const content = btn.nextElementSibling;

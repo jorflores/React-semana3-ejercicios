@@ -332,12 +332,15 @@
   <div class="step">
     <div class="step-header">
       <div class="step-num">03</div>
-      <div class="step-title">Iniciar el servidor</div>
+      <div class="step-title">Instalar dependencias e iniciar el servidor</div>
     </div>
     <div class="step-body">
+      <p>La primera vez, instala paquetes dentro de la carpeta del proyecto. Luego levanta el servidor de desarrollo.</p>
       <div class="spoiler">
-        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comandos</button>
         <div class="spoiler-content">
+          <pre><code>npm install</code></pre>
+          <div class="note">⚠️ Espera a que termine <code>npm install</code> antes de ejecutar el siguiente comando.</div>
           <pre><code>npm run dev</code></pre>
         </div>
       </div>
@@ -403,7 +406,7 @@ export default App;</code></pre>
     </div>
     <div class="step-body">
       <p>Dentro de <code>src/components/</code> crea el archivo <code>Contador.jsx</code>.<br>
-      Escribe <code>rfce</code> + Tab para generar la estructura base.</p>
+      Si usas VS Code con snippets (p. ej. ES7+), puedes escribir <code>rfce</code> + Tab para generar la estructura base; si no, crea una función <code>Contador</code> que devuelva un <code>&lt;div&gt;</code> vacío y ajusta el nombre del componente.</p>
     </div>
   </div>
 
@@ -464,7 +467,10 @@ function reiniciar() {
   setContador(0);
 }</code></pre>
           <div class="note">
-            ⚠️ Nunca escribas <code>contador++</code> directamente. React no detecta ese cambio y la pantalla no se actualiza.
+            ⚠️ El valor del estado solo cambia con el setter (<code>setContador</code>). No reasignes <code>contador</code> ni intentes mutarlo: React no lo trata como una actualización y la UI no reflejaría el cambio.
+          </div>
+          <div class="note note-info">
+            También puedes usar la forma funcional: <code>setContador((c) =&gt; c + 1)</code>. React pasa el valor <strong>más reciente</strong> del estado a esa función, así que si llamas al setter varias veces seguidas en el mismo evento, cada llamada parte del valor actualizado anterior (con <code>setContador(contador + 1)</code> dos veces seguidas podrías quedarte solo con +1).
           </div>
         </div>
       </div>
