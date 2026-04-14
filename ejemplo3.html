@@ -182,6 +182,48 @@
       color: var(--muted); flex-shrink: 0; margin-top: 1px;
     }
     .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+
+    /* ── Diagramas de componentes ── */
+    .diagram-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:10px; }
+    .diagram-tabs { display:flex; gap:6px; margin-bottom:18px; }
+    .diagram-tab { font-size:12px; font-family:var(--mono); padding:5px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; transition:all .15s; }
+    .diagram-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .diagram-panel { display:none; }
+    .diagram-panel.active { display:block; }
+    .cbox { border-radius:8px; padding:8px 18px; font-family:var(--mono); font-size:12.5px; font-weight:500; white-space:nowrap; text-align:center; }
+    .cbox-app  { background:#EEEDFE; color:#3C3489; border:1.5px solid #AFA9EC; }
+    .cbox-form { background:#E1F5EE; color:#085041; border:1.5px solid #5DCAA5; }
+    .cbox-list { background:#FAEEDA; color:#633806; border:1.5px solid #EF9F27; }
+    .cbox-item { background:#FAECE7; color:#712B13; border:1.5px solid #F0997B; }
+    .cbox-sub  { font-family:var(--sans); font-size:11px; font-weight:400; opacity:.7; margin-top:2px; }
+    .prop-label { font-family:var(--mono); font-size:10.5px; color:#7F77DD; margin:2px 0; text-align:center; }
+    .items-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .tree-col { display:flex; flex-direction:column; align-items:center; }
+    .tree-vline { width:1.5px; height:22px; background:#c7c6f0; }
+    .tree-hbar { height:1.5px; background:#c7c6f0; }
+    .tree-fork-wrap { display:flex; align-items:flex-start; justify-content:center; gap:0; position:relative; width:100%; }
+    .tree-branch { display:flex; flex-direction:column; align-items:center; }
+    .mock-app  { border:2px solid #AFA9EC; border-radius:12px; padding:16px; background:#EEEDFE18; }
+    .mock-form { border:2px solid #5DCAA5; border-radius:10px; padding:12px; background:#E1F5EE22; margin-bottom:10px; }
+    .mock-list { border:2px solid #EF9F27; border-radius:10px; padding:12px; background:#FAEEDA22; }
+    .mock-item { border:2px dashed #F0997B; border-radius:8px; padding:8px 12px; background:#FAECE722; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+    .mock-item:last-child { margin-bottom:0; }
+    .cpill { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 6px; border-radius:99px; flex-shrink:0; }
+    .pill-app  { background:#EEEDFE; color:#3C3489; border:1px solid #AFA9EC; }
+    .pill-form { background:#E1F5EE; color:#085041; border:1px solid #5DCAA5; }
+    .pill-list { background:#FAEEDA; color:#633806; border:1px solid #EF9F27; }
+    .pill-item { background:#FAECE7; color:#712B13; border:1px solid #F0997B; }
+    .mock-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:12px; }
+    .mock-input-row { display:flex; gap:8px; margin-top:6px; }
+    .mock-input-fake { flex:1; height:30px; border:1px solid var(--border); border-radius:6px; background:var(--bg); }
+    .mock-btn-fake { height:30px; padding:0 12px; border-radius:6px; background:var(--accent); color:#fff; font-size:12px; border:none; display:flex; align-items:center; }
+    .mock-check { width:13px; height:13px; border:1.5px solid #999; border-radius:3px; flex-shrink:0; }
+    .mock-check.done { background:var(--accent); border-color:var(--accent); }
+    .mock-text { font-size:13px; color:var(--text); }
+    .mock-text.done { text-decoration:line-through; color:var(--muted); }
+    .diagram-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; padding-top:12px; border-top:1px solid var(--border-soft); }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); }
+    .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -202,6 +244,133 @@
       <span class="tag">map()</span>
       <span class="tag">TailwindCSS</span>
       <span class="tag tag-time">⏱ 35–40 min</span>
+    </div>
+  </div>
+
+
+  <!-- ── Arquitectura de componentes ── -->
+  <div class="section-label">🧩 Arquitectura de componentes</div>
+  <div class="diagram-section">
+    <div class="diagram-tabs">
+      <button class="diagram-tab active" onclick="showDiagram('arbol')">Árbol de componentes</button>
+      <button class="diagram-tab" onclick="showDiagram('visual')">Vista en el navegador</button>
+    </div>
+
+    <!-- Panel 1: Árbol -->
+    <div class="diagram-panel active" id="panel-arbol">
+      <div class="tree-col" style="width:100%;">
+
+        <!-- App.jsx -->
+        <div class="cbox cbox-app" style="min-width:200px;">
+          App.jsx
+          <div class="cbox-sub">estado global de tareas</div>
+        </div>
+
+        <!-- Línea vertical y fork -->
+        <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+          <div class="tree-vline"></div>
+          <div style="display:flex;width:60%;position:relative;justify-content:space-between;align-items:flex-start;">
+            <!-- barra horizontal -->
+            <div style="position:absolute;top:0;left:50px;right:50px;height:1.5px;background:#c7c6f0;"></div>
+            <!-- rama izq -->
+            <div class="tree-branch">
+              <div class="prop-label">onAgregar</div>
+              <div class="tree-vline"></div>
+              <div class="cbox cbox-form">
+                TodoForm.jsx
+                <div class="cbox-sub">input + botón agregar</div>
+              </div>
+            </div>
+            <!-- rama der -->
+            <div class="tree-branch">
+              <div class="prop-label">tareas, onToggle</div>
+              <div class="tree-vline"></div>
+              <div class="cbox cbox-list">
+                TodoList.jsx
+                <div class="cbox-sub">lista de tareas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TodoList → TodoItems -->
+        <div style="display:flex;flex-direction:column;align-items:flex-end;width:60%;margin-right:0;">
+          <div class="tree-vline" style="align-self:flex-end;margin-right:50px;"></div>
+          <div class="prop-label" style="align-self:flex-end;margin-right:30px;">key, texto, completada, onToggle</div>
+          <div class="tree-vline" style="align-self:flex-end;margin-right:50px;"></div>
+        </div>
+        <div class="items-row" style="margin-top:0;">
+          <div class="cbox cbox-item">TodoItem.jsx<div class="cbox-sub">una tarea</div></div>
+          <div class="cbox cbox-item">TodoItem.jsx<div class="cbox-sub">una tarea</div></div>
+          <div class="cbox cbox-item" style="opacity:.5;">...<div class="cbox-sub">N tareas</div></div>
+        </div>
+
+      </div>
+      <div class="diagram-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border:1px solid #AFA9EC;"></div>Contiene estado global</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1px solid #5DCAA5;"></div>Recibe props, tiene estado local</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1px solid #EF9F27;"></div>Recibe props, pasa a hijos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FAECE7;border:1px solid #F0997B;"></div>Hoja — solo muestra datos</div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Vista visual -->
+    <div class="diagram-panel" id="panel-visual">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+        <!-- Mockup -->
+        <div>
+          <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">Vista en el navegador</p>
+          <div class="mock-app">
+            <span class="cpill pill-app" style="display:inline-block;margin-bottom:8px;">App.jsx</span>
+            <div class="mock-title">Mi lista de tareas</div>
+            <div class="mock-form">
+              <span class="cpill pill-form" style="display:inline-block;margin-bottom:6px;">TodoForm.jsx</span>
+              <div class="mock-input-row">
+                <div class="mock-input-fake"></div>
+                <div class="mock-btn-fake">Agregar</div>
+              </div>
+            </div>
+            <div class="mock-list">
+              <span class="cpill pill-list" style="display:inline-block;margin-bottom:8px;">TodoList.jsx</span>
+              <div class="mock-item">
+                <span class="cpill pill-item">TodoItem</span>
+                <div class="mock-check done"></div>
+                <span class="mock-text done">Aprender React</span>
+              </div>
+              <div class="mock-item">
+                <span class="cpill pill-item">TodoItem</span>
+                <div class="mock-check"></div>
+                <span class="mock-text">Hacer la práctica</span>
+              </div>
+              <div class="mock-item">
+                <span class="cpill pill-item">TodoItem</span>
+                <div class="mock-check"></div>
+                <span class="mock-text">Subir a GitHub</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Descripción -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:0;">Responsabilidad de cada uno</p>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-app" style="display:inline-block;margin-bottom:6px;">App.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);">Contiene el estado de todas las tareas. Define <code>agregarTarea</code> y <code>toggleTarea</code> y las pasa hacia abajo.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-form" style="display:inline-block;margin-bottom:6px;">TodoForm.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);">Maneja el input con estado local. Al hacer submit llama a <code>onAgregar</code> del padre.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-list" style="display:inline-block;margin-bottom:6px;">TodoList.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);">Recibe el array de tareas y lo recorre con <code>.map()</code>. Renderiza un <code>TodoItem</code> por cada tarea.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-item" style="display:inline-block;margin-bottom:6px;">TodoItem.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);">Muestra una sola tarea. Aplica tachado si <code>completada</code> es true. El checkbox llama a <code>onToggle</code>.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -598,6 +767,13 @@ export default App;</code></pre>
 </div>
 
 <script>
+
+  function showDiagram(id) {
+    document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
   function toggle(btn) {
     const content = btn.nextElementSibling;
     const isOpen = content.classList.toggle('visible');

@@ -243,6 +243,37 @@
       margin-top: 1px;
     }
     .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+
+    /* ── Diagrama ejemplo 2 ── */
+    .diagram-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:10px; }
+    .diagram-tabs { display:flex; gap:6px; margin-bottom:18px; }
+    .diagram-tab { font-size:12px; font-family:var(--mono); padding:5px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; transition:all .15s; }
+    .diagram-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .diagram-panel { display:none; }
+    .diagram-panel.active { display:block; }
+    .cbox { border-radius:8px; padding:8px 18px; font-family:var(--mono); font-size:12.5px; font-weight:500; white-space:nowrap; text-align:center; }
+    .cbox-app  { background:#EEEDFE; color:#3C3489; border:1.5px solid #AFA9EC; }
+    .cbox-card { background:#E1F5EE; color:#085041; border:1.5px solid #5DCAA5; }
+    .cbox-sub  { font-family:var(--sans); font-size:11px; font-weight:400; opacity:.7; margin-top:2px; }
+    .prop-label { font-family:var(--mono); font-size:10.5px; color:#7F77DD; margin:2px 0; text-align:center; }
+    .items-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .tree-col { display:flex; flex-direction:column; align-items:center; }
+    .tree-vline { width:1.5px; height:22px; background:#c7c6f0; }
+    .mock-app  { border:2px solid #AFA9EC; border-radius:12px; padding:16px; background:#EEEDFE18; }
+    .mock-card { border:2px dashed #5DCAA5; border-radius:10px; padding:12px; background:#E1F5EE22; margin-bottom:10px; }
+    .mock-card:last-child { margin-bottom:0; }
+    .cpill { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 6px; border-radius:99px; flex-shrink:0; display:inline-block; }
+    .pill-app  { background:#EEEDFE; color:#3C3489; border:1px solid #AFA9EC; }
+    .pill-card { background:#E1F5EE; color:#085041; border:1px solid #5DCAA5; }
+    .mock-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:12px; }
+    .mock-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:4px; }
+    .mock-detail { font-size:12px; color:var(--muted); margin:2px 0; }
+    .mock-badge { display:inline-block; font-size:10.5px; font-family:var(--mono); padding:2px 7px; border-radius:4px; margin-top:4px; }
+    .badge-on  { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+    .badge-off { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+    .diagram-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; padding-top:12px; border-top:1px solid var(--border-soft); }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); }
+    .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -262,6 +293,125 @@
       <span class="tag">CSS por componente</span>
       <span class="tag">spread operator</span>
       <span class="tag tag-time">⏱ 25–30 min</span>
+    </div>
+  </div>
+
+
+  <!-- ── Arquitectura de componentes ── -->
+  <div class="section-label">🧩 Arquitectura de componentes</div>
+  <div class="diagram-section">
+    <div class="diagram-tabs">
+      <button class="diagram-tab active" onclick="showDiagram('arbol')">Árbol de componentes</button>
+      <button class="diagram-tab" onclick="showDiagram('visual')">Vista en el navegador</button>
+    </div>
+
+    <!-- Panel 1: Árbol -->
+    <div class="diagram-panel active" id="panel-arbol">
+      <div class="tree-col" style="width:100%;">
+
+        <!-- App.jsx -->
+        <div class="cbox cbox-app" style="min-width:220px;">
+          App.jsx
+          <div class="cbox-sub">define el array de alumnos</div>
+        </div>
+        <div class="tree-vline"></div>
+        <div class="prop-label">key · nombre · lenguaje · activo</div>
+        <div style="font-family:var(--mono);font-size:10px;color:#7F77DD;text-align:center;margin-bottom:2px;">via .map() — uno por alumno</div>
+        <div class="tree-vline"></div>
+
+        <!-- TarjetaAlumno x3 -->
+        <div class="items-row">
+          <div class="cbox cbox-card">
+            TarjetaAlumno.jsx
+            <div class="cbox-sub">Ana García</div>
+          </div>
+          <div class="cbox cbox-card">
+            TarjetaAlumno.jsx
+            <div class="cbox-sub">Luis Martínez</div>
+          </div>
+          <div class="cbox cbox-card" style="opacity:.55;">
+            TarjetaAlumno.jsx
+            <div class="cbox-sub">... N alumnos</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:20px;background:#f7f6f2;border:1px solid var(--border);border-radius:8px;padding:14px;">
+        <p style="font-size:12px;font-family:var(--mono);color:var(--muted);margin-bottom:10px;">Flujo de datos</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;background:var(--surface);">
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px;">App.jsx define</p>
+            <p style="font-size:12px;color:var(--muted);">El array <code>alumnos</code> con objetos <code>{ id, nombre, lenguaje, activo }</code>. Lo recorre con <code>.map()</code> y pasa cada campo como prop.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;background:var(--surface);">
+            <p style="font-size:11px;font-weight:600;color:#085041;margin-bottom:4px;">TarjetaAlumno recibe</p>
+            <p style="font-size:12px;color:var(--muted);">Las props <code>nombre</code>, <code>lenguaje</code> y <code>activo</code>. Solo las muestra — nunca las modifica. Las props son de solo lectura.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border:1px solid #AFA9EC;"></div>Contiene y pasa datos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1px solid #5DCAA5;"></div>Recibe props y las muestra</div>
+        <div class="legend-item" style="font-family:var(--mono);font-size:11px;">key={alumno.id} — identifica cada elemento en la lista</div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Vista visual -->
+    <div class="diagram-panel" id="panel-visual">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+        <!-- Mockup -->
+        <div>
+          <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">Vista en el navegador</p>
+          <div class="mock-app">
+            <span class="cpill pill-app" style="margin-bottom:8px;">App.jsx</span>
+            <div class="mock-title">Lista de Alumnos</div>
+
+            <div class="mock-card">
+              <span class="cpill pill-card" style="margin-bottom:6px;">TarjetaAlumno.jsx</span>
+              <div class="mock-name">Ana García</div>
+              <div class="mock-detail">Lenguaje favorito: JavaScript</div>
+              <div class="mock-detail">Estado: <span class="mock-badge badge-on">Activo</span></div>
+            </div>
+
+            <div class="mock-card">
+              <span class="cpill pill-card" style="margin-bottom:6px;">TarjetaAlumno.jsx</span>
+              <div class="mock-name">Luis Martínez</div>
+              <div class="mock-detail">Lenguaje favorito: Python</div>
+              <div class="mock-detail">Estado: <span class="mock-badge badge-off">Inactivo</span></div>
+            </div>
+
+            <div class="mock-card">
+              <span class="cpill pill-card" style="margin-bottom:6px;">TarjetaAlumno.jsx</span>
+              <div class="mock-name">María López</div>
+              <div class="mock-detail">Lenguaje favorito: React</div>
+              <div class="mock-detail">Estado: <span class="mock-badge badge-on">Activo</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:0;">Responsabilidad de cada uno</p>
+
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-app" style="margin-bottom:6px;">App.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);margin-top:4px;">Define el array de alumnos y lo recorre con <code>.map()</code>. Crea un <code>&lt;TarjetaAlumno&gt;</code> por cada objeto del array.</p>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <span class="cpill pill-card" style="margin-bottom:6px;">TarjetaAlumno.jsx</span>
+            <p style="font-size:12.5px;color:var(--muted);margin-top:4px;">Recibe <code>nombre</code>, <code>lenguaje</code> y <code>activo</code> como props. Muestra los datos y usa un ternario para mostrar "Activo" o "Inactivo".</p>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:#fffbeb;border-color:#fde68a;">
+            <p style="font-size:11px;font-weight:600;color:#92400e;margin-bottom:4px;">Concepto clave</p>
+            <p style="font-size:12.5px;color:#92400e;">El mismo componente <code>TarjetaAlumno</code> se reutiliza N veces — una por alumno. Cada instancia recibe datos distintos pero usa el mismo código.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -619,6 +769,13 @@ export default App;</code></pre>
 </div>
 
 <script>
+
+  function showDiagram(id) {
+    document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
   function toggle(btn) {
     const content = btn.nextElementSibling;
     const isOpen = content.classList.toggle('visible');
