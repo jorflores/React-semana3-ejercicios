@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejercicios React</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1.5px solid var(--border);
+      padding: 28px 40px 24px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    header p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      flex: 1;
+    }
+
+    .grid-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .grid-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+
+    /* ── Cards ── */
+    .cards { display: flex; flex-direction: column; gap: 12px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 24px;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+      color: inherit;
+    }
+    .card:hover {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+      transform: translateY(-1px);
+    }
+    .card:active { transform: translateY(0); }
+
+    .card-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .card-body { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 11px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .tag-gray {
+      background: #f3f4f6;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+
+    .card-arrow {
+      font-size: 18px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .card:hover .card-arrow {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    /* ── Placeholder card (ejemplo 3) ── */
+    .card-placeholder {
+      opacity: 0.45;
+      pointer-events: none;
+      cursor: default;
+    }
+    .card-placeholder:hover { transform: none; box-shadow: none; border-color: var(--border); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border-soft);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-eyebrow">Curso de React</div>
+    <h1>Ejercicios</h1>
+    <p>Selecciona un ejercicio para comenzar.</p>
+  </header>
+
+  <main>
+    <div class="grid-label">📚 Contenido del curso</div>
+    <div class="cards">
+
+      <a href="ejemplo1.html" class="card">
+        <div class="card-num">01</div>
+        <div class="card-body">
+          <div class="card-title">🔢 Contador Interactivo</div>
+          <div class="card-desc">Construye un contador con botones de suma, resta y reset.</div>
+          <div class="card-tags">
+            <span class="tag">useState</span>
+            <span class="tag">eventos</span>
+            <span class="tag">re-render</span>
+            <span class="tag">className</span>
+            <span class="tag-gray tag">⏱ 35–40 min</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejemplo2.html" class="card">
+        <div class="card-num">02</div>
+        <div class="card-body">
+          <div class="card-title">🧩 Tarjetas de Alumnos</div>
+          <div class="card-desc">Renderiza una lista de alumnos usando props y map().</div>
+          <div class="card-tags">
+            <span class="tag">props</span>
+            <span class="tag">map()</span>
+            <span class="tag">key</span>
+            <span class="tag">spread operator</span>
+            <span class="tag-gray tag">⏱ 25–30 min</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejemplo3.html" class="card card-placeholder">
+        <div class="card-num">03</div>
+        <div class="card-body">
+          <div class="card-title">🔜 Próximamente</div>
+          <div class="card-desc">Este ejercicio aún no está disponible.</div>
+          <div class="card-tags">
+            <span class="tag-gray tag">Pendiente</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+    </div>
+  </main>
+
+  <footer>
+    Ejercicios de React · Uso interno
+  </footer>
+
+</body>
+</html>
