@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Práctica #3 — To-do List</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 740px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header h1 { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .tag-time { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+
+    /* Section labels */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+
+    /* Step card */
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .step-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
+    .step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11.5px; font-weight: 600;
+      color: var(--muted); flex-shrink: 0;
+      font-family: var(--mono);
+    }
+    .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .step-body { padding: 0 16px 14px 54px; font-size: 13.5px; color: var(--muted); }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+
+    /* Code */
+    code {
+      font-family: var(--mono); font-size: 12px;
+      background: #f1f0ec; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--text);
+    }
+    pre {
+      background: #1e1d1b; border-radius: var(--radius-sm);
+      padding: 14px 16px; margin: 8px 0; overflow-x: auto;
+    }
+    pre code {
+      font-size: 12.5px; background: none; border: none;
+      padding: 0; color: #d4d0c8; line-height: 1.65;
+    }
+    .code-label { font-size: 11px; font-family: var(--mono); color: var(--muted); margin: 10px 0 3px; }
+
+    /* Spoiler */
+    .spoiler { margin-top: 10px; }
+    .btn-show {
+      font-family: var(--sans); font-size: 12px; font-weight: 500;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 5px 12px;
+      cursor: pointer; color: var(--muted);
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-show:hover { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+    .btn-show .arrow { font-size: 9px; transition: transform 0.2s; }
+    .btn-show.open .arrow { transform: rotate(90deg); }
+    .spoiler-content { display: none; margin-top: 10px; animation: fadeIn 0.2s ease; }
+    .spoiler-content.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Notes */
+    .note {
+      background: var(--warn-bg); border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      font-size: 12.5px; color: var(--warn-text); margin: 8px 0; line-height: 1.6;
+    }
+    .note-info { background: var(--accent-bg); border-color: var(--accent-border); color: #3730a3; }
+    .note-green { background: var(--green-bg); border-color: #bbf7d0; color: #166534; }
+
+    /* Challenge */
+    .challenge {
+      background: var(--green-bg); border: 1px solid #bbf7d0;
+      border-radius: var(--radius); padding: 16px 18px; margin-top: 4px;
+    }
+    .challenge-title { font-size: 13.5px; font-weight: 500; color: var(--green); margin-bottom: 4px; }
+    .challenge p { font-size: 13px; color: #166534; }
+
+    /* Questions */
+    .questions { list-style: none; padding: 0; }
+    .question {
+      display: flex; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft); align-items: flex-start;
+    }
+    .question:last-child { border-bottom: none; }
+    .q-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; font-family: var(--mono);
+      color: var(--muted); flex-shrink: 0; margin-top: 1px;
+    }
+    .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Práctica #3</div>
+    <h1>✅ To-do List</h1>
+    <div class="header-meta">
+      <span class="tag">useState con arrays</span>
+      <span class="tag">props</span>
+      <span class="tag">onClick</span>
+      <span class="tag">onChange</span>
+      <span class="tag">onSubmit</span>
+      <span class="tag">map()</span>
+      <span class="tag">TailwindCSS</span>
+      <span class="tag tag-time">⏱ 35–40 min</span>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section-label">⚙️ Setup del proyecto</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">01</div><div class="step-title">Crear el proyecto</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm create vite@latest todo-app -- --template react</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">02</div><div class="step-title">Entrar al proyecto</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>cd todo-app</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">03</div><div class="step-title">Instalar Tailwind</div></div>
+    <div class="step-body">
+      <p>Primero instala las dependencias, espera a que terminen completamente y luego inicializa la configuración.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comandos</button>
+        <div class="spoiler-content">
+          <pre><code>npm install -D tailwindcss@3 postcss autoprefixer</code></pre>
+          <div class="note">⚠️ Espera a que termine completamente antes de continuar.</div>
+          <pre><code>npx tailwindcss init -p</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">04</div><div class="step-title">Configurar tailwind.config.js</div></div>
+    <div class="step-body">
+      <p>Abre <code>tailwind.config.js</code> y actualiza el campo <code>content</code> para que Tailwind sepa qué archivos analizar.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>content: [
+  "./index.html",
+  "./src/**/*.{js,jsx,ts,tsx}",
+],</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">05</div><div class="step-title">Configurar index.css</div></div>
+    <div class="step-body">
+      <p>Reemplaza todo el contenido de <code>src/index.css</code> con las directivas de Tailwind más el reset básico.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">06</div><div class="step-title">Limpiar archivos base</div></div>
+    <div class="step-body">
+      <ul>
+        <li>En <code>src/App.css</code> borra todo el contenido</li>
+        <li>En <code>src/App.jsx</code> deja solo el componente vacío</li>
+      </ul>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">src/App.jsx</div>
+          <pre><code>function App() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Todo App&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">07</div><div class="step-title">Iniciar el servidor</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm run dev</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">08</div><div class="step-title">Crear la carpeta de componentes</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/</code>, crea la carpeta <code>components/</code>.</p>
+    </div>
+  </div>
+
+  <!-- Ejercicio -->
+  <div class="section-label">📋 Pasos del ejercicio</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">09</div><div class="step-title">Crear TodoItem.jsx</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/components/</code> crea <code>TodoItem.jsx</code>. Este componente muestra una tarea individual y recibe <code>texto</code>, <code>completada</code> y <code>onToggle</code> como props.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>function TodoItem({ texto, completada, onToggle }) {
+  return (
+    &lt;div className="flex items-center gap-3 p-3 border rounded-lg mb-2"&gt;
+      &lt;input
+        type="checkbox"
+        checked={completada}
+        onChange={onToggle}
+        className="w-4 h-4"
+      /&gt;
+      &lt;span className={completada ? 'line-through text-gray-400' : ''}&gt;
+        {texto}
+      &lt;/span&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default TodoItem;</code></pre>
+          <div class="note note-info">
+            La clase de Tailwind se aplica condicionalmente con un ternario: si <code>completada</code> es <code>true</code> aplica <code>line-through text-gray-400</code>, si no, no aplica ninguna clase extra.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">10</div><div class="step-title">Crear TodoList.jsx</div></div>
+    <div class="step-body">
+      <p>Este componente recibe el array de tareas y renderiza un <code>TodoItem</code> por cada una.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import TodoItem from './TodoItem';
+
+function TodoList({ tareas, onToggle }) {
+  return (
+    &lt;div&gt;
+      {tareas.map((tarea) =&gt; (
+        &lt;TodoItem
+          key={tarea.id}
+          texto={tarea.texto}
+          completada={tarea.completada}
+          onToggle={() =&gt; onToggle(tarea.id)}
+        /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+export default TodoList;</code></pre>
+          <div class="note note-info">
+            <code>onToggle={() =&gt; onToggle(tarea.id)}</code> — se envuelve en una arrow function para poder pasar el <code>id</code> de la tarea al handler del padre.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">11</div><div class="step-title">Crear TodoForm.jsx</div></div>
+    <div class="step-body">
+      <p>El estado del input vive aquí porque solo lo necesita este componente. Implementa el formulario con validación básica.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { useState } from 'react';
+
+function TodoForm({ onAgregar }) {
+
+  const [texto, setTexto] = useState('');
+
+  function handleSubmit(e) {
+    e.preventDefault();         // evita que la página se recargue
+    if (!texto.trim()) return;  // no agregar si el input está vacío
+    onAgregar(texto);
+    setTexto('');               // limpiar el input después de agregar
+  }
+
+  return (
+    &lt;form onSubmit={handleSubmit} className="flex gap-2 mb-6"&gt;
+      &lt;input
+        type="text"
+        value={texto}
+        onChange={(e) =&gt; setTexto(e.target.value)}
+        placeholder="Nueva tarea..."
+        className="flex-1 border rounded-lg px-3 py-2"
+      /&gt;
+      &lt;button
+        type="submit"
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+      &gt;
+        Agregar
+      &lt;/button&gt;
+    &lt;/form&gt;
+  );
+}
+
+export default TodoForm;</code></pre>
+          <div class="note">
+            ⚠️ <code>e.preventDefault()</code> es necesario porque por defecto un formulario HTML recarga la página al hacer submit. En React siempre hay que evitar ese comportamiento.
+          </div>
+          <div class="note">
+            ⚠️ <code>texto.trim()</code> elimina espacios en blanco al inicio y al final — evita agregar tareas vacías o con solo espacios.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">12</div><div class="step-title">Configurar App.jsx con el estado global</div></div>
+    <div class="step-body">
+      <p>El estado de las tareas vive en <code>App.jsx</code> porque lo necesitan varios componentes. Importa los componentes y define el estado inicial.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { useState } from 'react';
+import TodoForm from './components/TodoForm';
+import TodoList from './components/TodoList';
+
+function App() {
+
+  const [tareas, setTareas] = useState([
+    { id: 1, texto: 'Aprender React', completada: false },
+    { id: 2, texto: 'Hacer la practica', completada: false },
+  ]);
+
+  return (
+    &lt;div className="max-w-md mx-auto mt-10 p-6"&gt;
+      &lt;h1 className="text-2xl font-bold mb-6"&gt;Mi lista de tareas&lt;/h1&gt;
+      &lt;TodoForm /&gt;
+      &lt;TodoList tareas={tareas} /&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">13</div><div class="step-title">Agregar la función para agregar tareas</div></div>
+    <div class="step-body">
+      <p>Crea <code>agregarTarea</code> en <code>App</code> y pásala como prop a <code>TodoForm</code>.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>function agregarTarea(texto) {
+  const nuevaTarea = {
+    id: Date.now(),
+    texto,
+    completada: false,
+  };
+  setTareas([...tareas, nuevaTarea]);
+}
+
+// Actualizar el return:
+&lt;TodoForm onAgregar={agregarTarea} /&gt;</code></pre>
+          <div class="note note-info">
+            <code>Date.now()</code> devuelve el número de milisegundos desde 1970 — forma rápida de generar ids únicos sin librerías externas.
+          </div>
+          <div class="note note-info">
+            <code>[...tareas, nuevaTarea]</code> crea un array nuevo con todas las tareas anteriores más la nueva. Nunca usar <code>tareas.push()</code> porque muta el array original y React no detecta el cambio.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">14</div><div class="step-title">Agregar la función para completar tareas</div></div>
+    <div class="step-body">
+      <p>Crea <code>toggleTarea</code> en <code>App</code> y pásala hasta <code>TodoItem</code> a través de <code>TodoList</code>.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>function toggleTarea(id) {
+  setTareas(tareas.map((tarea) =>
+    tarea.id === id ? { ...tarea, completada: !tarea.completada } : tarea
+  ));
+}
+
+// Actualizar el return:
+&lt;TodoList tareas={tareas} onToggle={toggleTarea} /&gt;</code></pre>
+          <div class="note note-info">
+            <code>.map()</code> recorre todas las tareas. Cuando encuentra la que tiene el <code>id</code> buscado, devuelve una copia con <code>completada</code> invertido (<code>!tarea.completada</code>). Las demás las devuelve sin cambio.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra</div>
+  <div class="challenge">
+    <div class="challenge-title">Botón de eliminar</div>
+    <p>Agrega un botón ✕ en cada <code>TodoItem</code> para eliminar la tarea. Requiere crear <code>eliminarTarea</code> en <code>App.jsx</code> y pasarla hasta el componente.</p>
+    <div class="spoiler" style="margin-top: 12px;">
+      <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar solución</button>
+      <div class="spoiler-content">
+        <div class="code-label">App.jsx — nueva función:</div>
+        <pre><code>function eliminarTarea(id) {
+  setTareas(tareas.filter((tarea) => tarea.id !== id));
+}</code></pre>
+        <div class="code-label">TodoList.jsx — pasar la prop:</div>
+        <pre><code>&lt;TodoItem
+  key={tarea.id}
+  texto={tarea.texto}
+  completada={tarea.completada}
+  onToggle={() =&gt; onToggle(tarea.id)}
+  onEliminar={() =&gt; onEliminar(tarea.id)}
+/&gt;</code></pre>
+        <div class="code-label">TodoItem.jsx — agregar el botón:</div>
+        <pre><code>&lt;button
+  onClick={onEliminar}
+  className="ml-auto text-red-400 hover:text-red-600"
+&gt;
+  ✕
+&lt;/button&gt;</code></pre>
+        <div class="note note-green">
+          <code>.filter()</code> devuelve un nuevo array con todas las tareas excepto la que tiene el <code>id</code> recibido. El original nunca se modifica.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preguntas -->
+  <div class="section-label">❓ Preguntas para reflexionar</div>
+  <ul class="questions">
+    <li class="question">
+      <div class="q-num">1</div>
+      <div class="q-text">¿Por qué el estado de las tareas vive en <code>App.jsx</code> y no en <code>TodoList.jsx</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">2</div>
+      <div class="q-text">¿Qué hace <code>e.preventDefault()</code> y qué pasaría si lo quitamos?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">3</div>
+      <div class="q-text">¿Por qué usamos <code>[...tareas, nuevaTarea]</code> en lugar de <code>tareas.push(nuevaTarea)</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">4</div>
+      <div class="q-text">¿Qué hace exactamente el <code>.map()</code> dentro de <code>toggleTarea</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">5</div>
+      <div class="q-text">¿Qué diferencia hay entre <code>onChange</code> en el input y <code>onClick</code> en el botón?</div>
+    </li>
+  </ul>
+
+</div>
+
+<script>
+  function toggle(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.toggle('visible');
+    btn.classList.toggle('open', isOpen);
+    const label = btn.querySelector('.arrow').nextSibling.textContent.replace(/^\s*(Mostrar|Ocultar)\s+/, '').trim();
+    btn.querySelector('.arrow').nextSibling.textContent = ' ' + (isOpen ? 'Ocultar ' : 'Mostrar ') + label;
+  }
+</script>
+</body>
+</html>
