@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarea — Buscador de Usuarios</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #ffffff; --border: #e2e0d8; --border-soft: #ede9e2;
+      --text: #1a1917; --muted: #6b6860; --accent: #3d3bcc;
+      --accent-bg: #eeeef9; --accent-border: #c7c6f0;
+      --green: #16a34a; --green-bg: #f0fdf4; --green-border: #bbf7d0;
+      --warn-bg: #fffbeb; --warn-border: #fde68a; --warn-text: #92400e;
+      --mono: 'IBM Plex Mono', monospace; --sans: 'Sora', sans-serif;
+      --radius: 10px; --radius-sm: 6px;
+    }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); padding: 40px 20px 80px; line-height: 1.7; }
+    .page { max-width: 740px; margin: 0 auto; }
+
+    .header { border-bottom: 1.5px solid var(--border); padding-bottom: 20px; margin-bottom: 32px; }
+    .header-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .header h1 { font-size: 26px; font-weight: 600; margin-bottom: 10px; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tag { font-size: 11.5px; font-family: var(--mono); background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 4px; padding: 2px 8px; }
+    .tag-gray { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+    .tag-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin: 36px 0 14px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+
+    .prose { font-size: 14px; color: var(--text); line-height: 1.8; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 12px; }
+    .prose p { margin-bottom: 10px; }
+    .prose p:last-child { margin-bottom: 0; }
+
+    .req-list { display: flex; flex-direction: column; gap: 10px; }
+    .req { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; gap: 14px; align-items: flex-start; }
+    .req-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .icon-purple { background: var(--accent-bg); }
+    .icon-green  { background: var(--green-bg); }
+    .icon-amber  { background: #faeeda; }
+    .req-body { flex: 1; }
+    .req-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .req-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .req-desc code { font-family: var(--mono); font-size: 11.5px; background: #f1f0ec; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+
+    .concept-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .pill { font-size: 11px; font-family: var(--mono); background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 10px; }
+
+    .note { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; line-height: 1.6; margin: 12px 0; }
+    .note-warn  { background: var(--warn-bg);  border: 1px solid var(--warn-border);  color: var(--warn-text); }
+    .note-green { background: var(--green-bg); border: 1px solid var(--green-border); color: #166534; }
+    .note-info  { background: var(--accent-bg); border: 1px solid var(--accent-border); color: #3730a3; }
+
+    .checklist { list-style: none; padding: 0; margin: 0; }
+    .check-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-soft); font-size: 13.5px; color: var(--text); }
+    .check-item:last-child { border-bottom: none; }
+    .check-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border); background: var(--surface); flex-shrink: 0; margin-top: 2px; }
+    .check-text { line-height: 1.55; }
+    .check-text code { font-family: var(--mono); font-size: 11.5px; background: #f1f0ec; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+
+    .grade-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .grade-table th { text-align: left; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 8px 12px; border-bottom: 1.5px solid var(--border); }
+    .grade-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+    .grade-table tr:last-child td { border-bottom: none; }
+    .grade-table td:last-child { text-align: right; font-family: var(--mono); font-weight: 500; color: var(--accent); }
+    .grade-total td { font-weight: 500; border-top: 1.5px solid var(--border); }
+    .grade-total td:last-child { color: var(--text); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Semana 4 · Tarea integradora</div>
+    <h1>👤 Buscador de Usuarios</h1>
+    <div class="header-meta">
+      <span class="tag">React Router</span>
+      <span class="tag">useEffect</span>
+      <span class="tag">fetch</span>
+      <span class="tag">useParams</span>
+      <span class="tag">Link</span>
+      <span class="tag-gray tag">⏱ Entrega en 1 semana</span>
+      <span class="tag-green tag">Individual</span>
+    </div>
+  </div>
+
+  <!-- Descripción -->
+  <div class="section-label">📋 Descripción</div>
+  <div class="prose">
+    <p>Construye una app de dos páginas que consuma la API pública <strong>JSONPlaceholder</strong> para mostrar información de usuarios. La app permite buscar un usuario por ID y ver su perfil completo en una página de detalle.</p>
+    <p>La página principal tiene un selector o input donde el usuario elige un ID del 1 al 10. Al hacer clic en "Buscar", navega a la ruta <code>/usuario/:id</code> donde se hace el fetch y se muestran los datos. No se requieren componentes extra más allá de las dos páginas y un Navbar.</p>
+    <p>La API no requiere registro ni API key — funciona directamente desde el navegador.</p>
+  </div>
+
+  <!-- API -->
+  <div class="section-label">🌐 La API — JSONPlaceholder</div>
+  <div class="card" style="margin-bottom: 12px;">
+    <div style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">URL base:</div>
+    <div style="font-family: var(--mono); font-size: 13px; background: #1e1d1b; color: #d4d0c8; padding: 12px 14px; border-radius: 6px; margin-bottom: 12px;">
+      https://jsonplaceholder.typicode.com/users/:id
+    </div>
+    <div style="font-size: 13px; color: var(--muted); margin-bottom: 6px;">Ejemplo de respuesta para <code>/users/1</code> — solo las propiedades que usarás:</div>
+    <div style="font-family: var(--mono); font-size: 12px; background: #1e1d1b; color: #d4d0c8; padding: 12px 14px; border-radius: 6px; line-height: 1.8;">
+      {<br>
+      &nbsp;&nbsp;"id": 1,<br>
+      &nbsp;&nbsp;"name": "Leanne Graham",<br>
+      &nbsp;&nbsp;"email": "Sincere@april.biz",<br>
+      &nbsp;&nbsp;"phone": "1-770-736-8031 x56442",<br>
+      &nbsp;&nbsp;"website": "hildegard.org",<br>
+      &nbsp;&nbsp;"address": {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;"city": "Gwenborough"<br>
+      &nbsp;&nbsp;},<br>
+      &nbsp;&nbsp;"company": {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;"name": "Romaguera-Crona"<br>
+      &nbsp;&nbsp;}<br>
+      }
+    </div>
+  </div>
+  <div class="note note-green">
+    La API tiene exactamente 10 usuarios (IDs del 1 al 10). Si se pide un ID fuera de ese rango, la respuesta llega vacía — lo cual es una buena oportunidad para mostrar un mensaje de error.
+  </div>
+
+  <!-- Mockup -->
+  <div class="section-label">🖼️ Resultado esperado</div>
+  <div style="background: #f1f0ec; border-radius: 12px; padding: 24px; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
+
+    <div style="background: #ffffff; border: 1px solid #d1cfc7; border-radius: 20px; width: 260px; overflow: hidden; flex-shrink: 0; margin: 0 auto;">
+      <div style="background: #3d3bcc; padding: 10px 16px; display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 13px; font-weight: 600; color: #fff; flex: 1;">Buscador de Usuarios</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">Inicio · Usuarios</div>
+      </div>
+
+      <!-- Home page -->
+      <div style="padding: 14px 16px; border-bottom: 1px solid #ede9e2;">
+        <div style="font-size: 13px; font-weight: 600; color: #1a1917; margin-bottom: 4px;">Buscar usuario</div>
+        <div style="font-size: 11px; color: #6b6860; margin-bottom: 10px;">Selecciona un ID del 1 al 10</div>
+        <div style="display: flex; gap: 8px;">
+          <div style="flex: 1; border: 1px solid #d1cfc7; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #9b9690; background: #f7f6f2;">ID: 3</div>
+          <div style="background: #3d3bcc; color: #fff; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500;">Buscar →</div>
+        </div>
+      </div>
+
+      <!-- Detalle page -->
+      <div style="padding: 14px 16px;">
+        <div style="font-size: 10px; color: #3d3bcc; margin-bottom: 8px; font-family: monospace;">localhost:5173/usuario/3</div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #eeeef9; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #3c3489;">CL</div>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #1a1917;">Clementine Bauch</div>
+            <div style="font-size: 10px; color: #6b6860;">ID #3</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; font-size: 11px;">
+            <span style="color: #6b6860; min-width: 55px;">Email</span>
+            <span style="color: #3d3bcc;">Nathan@yesenia.net</span>
+          </div>
+          <div style="display: flex; gap: 8px; font-size: 11px;">
+            <span style="color: #6b6860; min-width: 55px;">Ciudad</span>
+            <span style="color: #1a1917;">McKenziehaven</span>
+          </div>
+          <div style="display: flex; gap: 8px; font-size: 11px;">
+            <span style="color: #6b6860; min-width: 55px;">Empresa</span>
+            <span style="color: #1a1917;">Romaguera-Jacobson</span>
+          </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 11px; color: #3d3bcc; cursor: pointer;">← Volver</div>
+      </div>
+    </div>
+
+    <!-- Anotaciones -->
+    <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="background:#fff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">1</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">Home</strong> — input o select con el ID. Al buscar navega a <code style="font-family:monospace;font-size:11px;">/usuario/:id</code> con <code style="font-family:monospace;font-size:11px;">useNavigate</code>.</div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">2</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">Detalle</strong> — lee el ID con <code style="font-family:monospace;font-size:11px;">useParams</code>, hace el fetch con <code style="font-family:monospace;font-size:11px;">useEffect</code> y muestra nombre, email y ciudad.</div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1cfc7;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#eeeef9;border:1px solid #c7c6f0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#3c3489;flex-shrink:0;margin-top:1px;">3</div>
+        <div style="font-size:12px;color:#6b6860;line-height:1.5;"><strong style="color:#1a1917;font-weight:500;">Estados</strong> — <code style="font-family:monospace;font-size:11px;">datos</code>, <code style="font-family:monospace;font-size:11px;">cargando</code> y <code style="font-family:monospace;font-size:11px;">error</code> en la página de detalle.</div>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:18px;height:18px;border-radius:50%;background:#faeeda;border:1px solid #f0c97a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#633806;flex-shrink:0;margin-top:1px;">+</div>
+        <div style="font-size:12px;color:#92400e;line-height:1.5;"><strong style="font-weight:500;">Reto extra</strong> — página <code style="font-family:monospace;font-size:11px;">/usuarios</code> con la lista completa de los 10 usuarios usando <code style="font-family:monospace;font-size:11px;">/users</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rutas -->
+  <div class="section-label">🗺️ Rutas esperadas</div>
+  <div class="card" style="font-family: var(--mono); font-size: 12.5px; line-height: 2.2; color: var(--muted);">
+    <div style="display: flex; gap: 24px; align-items: center;">
+      <span style="color: var(--accent); min-width: 200px;">/</span>
+      <span style="color: var(--text);">Home.jsx</span>
+      <span style="font-family: var(--sans); font-size: 12px;">Input para el ID + botón Buscar</span>
+    </div>
+    <div style="display: flex; gap: 24px; align-items: center;">
+      <span style="color: var(--accent); min-width: 200px;">/usuario/:id</span>
+      <span style="color: var(--text);">Detalle.jsx</span>
+      <span style="font-family: var(--sans); font-size: 12px;">Fetch + mostrar datos del usuario</span>
+    </div>
+  </div>
+  <div class="note note-info" style="margin-top: 10px;">
+    El parámetro <code>:id</code> en la ruta es el mismo que recibes con <code>useParams()</code> en <code>Detalle.jsx</code>. Recuerda convertirlo a número con <code>Number(id)</code> antes de usarlo en el fetch.
+  </div>
+
+  <!-- Requisitos -->
+  <div class="section-label">✅ Requisitos funcionales</div>
+  <div class="req-list">
+
+    <div class="req">
+      <div class="req-icon icon-purple">🏠</div>
+      <div class="req-body">
+        <div class="req-title">Página Home con input de búsqueda</div>
+        <div class="req-desc">
+          Un input de tipo número (o un <code>select</code>) donde el usuario ingresa un ID del 1 al 10. Al hacer clic en el botón "Buscar", navega a <code>/usuario/:id</code> usando <code>useNavigate</code>.
+          <div class="concept-row">
+            <span class="pill">useState</span>
+            <span class="pill">useNavigate</span>
+            <span class="pill">Link</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-purple">📋</div>
+      <div class="req-body">
+        <div class="req-title">Página Detalle con fetch al montar</div>
+        <div class="req-desc">
+          Lee el <code>id</code> de la URL con <code>useParams</code>. Al montar el componente, hace un fetch a <code>https://jsonplaceholder.typicode.com/users/:id</code> y guarda la respuesta en estado. Muestra nombre, email y ciudad del usuario.
+          <div class="concept-row">
+            <span class="pill">useParams</span>
+            <span class="pill">useEffect</span>
+            <span class="pill">fetch</span>
+            <span class="pill">[id]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-amber">⏳</div>
+      <div class="req-body">
+        <div class="req-title">Estado de carga y error</div>
+        <div class="req-desc">
+          Mientras se espera la respuesta, mostrar un mensaje "Cargando...". Si el fetch falla o la respuesta no tiene datos, mostrar un mensaje de error. Usar tres estados: <code>datos</code>, <code>cargando</code> y <code>error</code>.
+          <div class="concept-row">
+            <span class="pill">cargando</span>
+            <span class="pill">error</span>
+            <span class="pill">renderizado condicional</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="req">
+      <div class="req-icon icon-green">🔗</div>
+      <div class="req-body">
+        <div class="req-title">Navbar con navegación entre páginas</div>
+        <div class="req-desc">
+          Un Navbar visible en todas las páginas con al menos un <code>Link</code> a Home. Usar <code>Link</code> de React Router en lugar de <code>&lt;a&gt;</code> para no recargar la página.
+          <div class="concept-row">
+            <span class="pill">Link</span>
+            <span class="pill">BrowserRouter</span>
+            <span class="pill">Routes / Route</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note note-warn" style="margin-top: 16px;">
+    ⚠️ El array de dependencias del <code>useEffect</code> en Detalle debe incluir <code>[id]</code> — así si el usuario navega de <code>/usuario/1</code> a <code>/usuario/2</code>, el fetch se vuelve a ejecutar automáticamente.
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra (opcional)</div>
+  <div class="card">
+    <div style="font-size: 14px; font-weight: 500; margin-bottom: 6px;">Lista completa de usuarios</div>
+    <div style="font-size: 13px; color: var(--muted); line-height: 1.65;">
+      Agrega una tercera ruta <code>/usuarios</code> que haga un fetch a <code>https://jsonplaceholder.typicode.com/users</code> (sin ID) y muestre la lista completa de los 10 usuarios. Cada uno debe tener un <code>Link</code> que navega a su página de detalle.
+    </div>
+    <div class="note note-info" style="margin-top: 10px; margin-bottom: 0;">
+      Pista: la URL sin <code>/:id</code> devuelve un array con los 10 usuarios. Usa <code>.map()</code> para renderizar la lista — exactamente igual que en la tarea de Agenda de Contactos.
+    </div>
+  </div>
+
+  <!-- Estructura -->
+  <div class="section-label">📁 Estructura esperada</div>
+  <div class="card" style="font-family: var(--mono); font-size: 12.5px; line-height: 2; color: var(--muted);">
+    <span style="color: var(--text);">src/</span><br>
+    &nbsp;&nbsp;<span style="color: var(--text);">pages/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--accent);">Home.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← input + botón buscar<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--accent);">Detalle.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← useParams + useEffect + fetch<br>
+    &nbsp;&nbsp;<span style="color: var(--text);">components/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--accent);">Navbar.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Link a Home<br>
+    &nbsp;&nbsp;<span style="color: var(--text);">App.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← BrowserRouter + Routes<br>
+    &nbsp;&nbsp;<span style="color: var(--text);">index.css</span>
+  </div>
+
+  <!-- Pista useNavigate -->
+  <div class="section-label">💡 Pista — useNavigate</div>
+  <div class="prose">
+    <p>Para navegar desde Home al hacer clic en "Buscar", necesitas <code>useNavigate</code> en lugar de <code>Link</code> — porque la navegación depende de lo que el usuario escribió en el input, no de una URL fija.</p>
+    <p>Se usa así:</p>
+  </div>
+  <div style="background: #1e1d1b; border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; overflow-x: auto;">
+    <pre style="margin:0;"><code style="font-family: var(--mono); font-size: 12.5px; color: #d4d0c8; line-height: 1.65;">import { useNavigate } from 'react-router-dom';
+
+function Home() {
+  const [id, setId] = useState(1);
+  const navigate = useNavigate();
+
+  function handleBuscar() {
+    navigate(`/usuario/${id}`);   // navega a /usuario/3, /usuario/7, etc.
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input
+        type="number"
+        min="1"
+        max="10"
+        value={id}
+        onChange={(e) =&gt; setId(e.target.value)}
+      /&gt;
+      &lt;button onClick={handleBuscar}&gt;Buscar&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+  </div>
+
+  <!-- Checklist -->
+  <div class="section-label">📤 Checklist de entrega</div>
+  <div class="card">
+    <ul class="checklist">
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El proyecto corre con <code>npm run dev</code> sin errores en consola</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Al escribir un ID y hacer clic en Buscar, navega a <code>/usuario/:id</code></div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">La página de detalle muestra nombre, email y ciudad del usuario</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Aparece "Cargando..." mientras se espera la respuesta de la API</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El Navbar tiene un <code>Link</code> a Home y está visible en todas las páginas</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">El <code>useEffect</code> tiene <code>[id]</code> en el array de dependencias</div></li>
+      <li class="check-item"><div class="check-box"></div><div class="check-text">Subí el proyecto a GitHub y entregué el link</div></li>
+    </ul>
+  </div>
+
+  <!-- Rúbrica -->
+  <div class="section-label">📊 Rúbrica</div>
+  <div class="card" style="padding: 0 4px;">
+    <table class="grade-table">
+      <thead>
+        <tr>
+          <th style="padding-left: 16px;">Criterio</th>
+          <th style="text-align: right; padding-right: 16px;">Puntos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding-left: 16px;">Navegación con React Router — rutas, Navbar y <code>useNavigate</code></td>
+          <td>30 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;"><code>useParams</code> lee el ID y lo pasa al fetch correctamente</td>
+          <td>25 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;"><code>useEffect</code> hace el fetch con <code>[id]</code> en las dependencias</td>
+          <td>25 pts</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 16px;">Estados <code>cargando</code> y <code>error</code> manejados correctamente</td>
+          <td>20 pts</td>
+        </tr>
+        <tr class="grade-total">
+          <td style="padding-left: 16px;">Total</td>
+          <td style="padding-right: 4px;">100 pts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-green" style="margin-top: 16px;">
+    El reto extra (lista completa en <code>/usuarios</code>) otorga hasta 10 puntos adicionales sobre la calificación final.
+  </div>
+
+</div>
+</body>
+</html>

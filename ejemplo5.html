@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejemplo 5 — Buscador de GitHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 740px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      text-decoration: none; margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .header { border-bottom: 1.5px solid var(--border); padding-bottom: 20px; margin-bottom: 32px; }
+    .header-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .header h1 { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { font-size: 11.5px; font-family: var(--mono); background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 4px; padding: 2px 8px; }
+    .tag-time { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin: 36px 0 14px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+    .step-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; color: var(--muted); flex-shrink: 0; font-family: var(--mono); }
+    .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .step-body { padding: 0 16px 14px 54px; font-size: 13.5px; color: var(--muted); }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+
+    code { font-family: var(--mono); font-size: 12px; background: #f1f0ec; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+    pre { background: #1e1d1b; border-radius: var(--radius-sm); padding: 14px 16px; margin: 8px 0; overflow-x: auto; }
+    pre code { font-size: 12.5px; background: none; border: none; padding: 0; color: #d4d0c8; line-height: 1.65; }
+    .code-label { font-size: 11px; font-family: var(--mono); color: var(--muted); margin: 10px 0 3px; }
+
+    .spoiler { margin-top: 10px; }
+    .btn-show { font-family: var(--sans); font-size: 12px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 12px; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s, border-color 0.15s; }
+    .btn-show:hover { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+    .btn-show .arrow { font-size: 9px; transition: transform 0.2s; }
+    .btn-show.open .arrow { transform: rotate(90deg); }
+    .spoiler-content { display: none; margin-top: 10px; animation: fadeIn 0.2s ease; }
+    .spoiler-content.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .note { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12.5px; color: var(--warn-text); margin: 8px 0; line-height: 1.6; }
+    .note-info { background: var(--accent-bg); border-color: var(--accent-border); color: #3730a3; }
+    .note-green { background: var(--green-bg); border-color: #bbf7d0; color: #166534; }
+
+    .challenge { background: var(--green-bg); border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px 18px; margin-top: 4px; }
+    .challenge-title { font-size: 13.5px; font-weight: 500; color: var(--green); margin-bottom: 4px; }
+    .challenge p { font-size: 13px; color: #166534; }
+
+    .questions { list-style: none; padding: 0; }
+    .question { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); align-items: flex-start; }
+    .question:last-child { border-bottom: none; }
+    .q-num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; font-family: var(--mono); color: var(--muted); flex-shrink: 0; margin-top: 1px; }
+    .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+
+    /* ── Diagrama fetch ── */
+    .diagram-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 10px; }
+    .diagram-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
+    .diagram-tab { font-size: 12px; font-family: var(--mono); padding: 5px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--muted); cursor: pointer; transition: all .15s; }
+    .diagram-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .diagram-panel { display: none; }
+    .diagram-panel.active { display: block; }
+
+    .flow-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .flow-block { border-radius: 8px; padding: 10px 14px; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+    .flow-arrow { color: #c7c6f0; font-size: 16px; flex-shrink: 0; }
+    .fb-input   { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #3C3489; }
+    .fb-effect  { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #633806; }
+    .fb-fetch   { background: #E6F1FB; border: 1.5px solid #85B7EB; color: #0C447C; }
+    .fb-loading { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #444441; }
+    .fb-ok      { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #085041; }
+    .fb-error   { background: #FCEBEB; border: 1.5px solid #F09595; color: #791F1F; }
+
+    .states-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+    .state-card { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+    .state-name { font-family: var(--mono); font-size: 11.5px; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+    .state-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    .diagram-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="index.html" class="back-link">← Volver a ejercicios</a>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Ejemplo 5</div>
+    <h1>🔍 Buscador de Usuarios de GitHub</h1>
+    <div class="header-meta">
+      <span class="tag">useEffect</span>
+      <span class="tag">fetch</span>
+      <span class="tag">useState</span>
+      <span class="tag">API REST</span>
+      <span class="tag">isLoading</span>
+      <span class="tag">manejo de errores</span>
+      <span class="tag tag-time">⏱ 25–30 min</span>
+    </div>
+  </div>
+
+  <!-- Diagrama -->
+  <div class="section-label">🧩 Cómo funciona el fetch con useEffect</div>
+  <div class="diagram-section">
+    <div class="diagram-tabs">
+      <button type="button" class="diagram-tab active" onclick="showDiagram('flujo', this)">Flujo de la petición</button>
+      <button type="button" class="diagram-tab" onclick="showDiagram('estados', this)">Los 4 estados</button>
+    </div>
+
+    <!-- Panel 1: Flujo -->
+    <div class="diagram-panel active" id="panel-flujo">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Qué sucede cada vez que el usuario escribe un nombre de usuario:</p>
+
+      <div class="flow-row">
+        <div class="flow-block fb-input">usuario cambia</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-block fb-effect">useEffect corre</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-block fb-loading">cargando = true</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-block fb-fetch">fetch a GitHub API</div>
+      </div>
+
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:4px;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--green);margin-bottom:6px;font-weight:600;">Si la respuesta es exitosa:</div>
+          <div class="flow-row">
+            <div class="flow-block fb-ok" style="font-size:11px;">res.ok = true</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-block fb-ok" style="font-size:11px;">setDatos(json)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-block fb-ok" style="font-size:11px;">muestra tarjeta</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:11px;font-family:var(--mono);color:#A32D2D;margin-bottom:6px;font-weight:600;">Si el usuario no existe:</div>
+          <div class="flow-row">
+            <div class="flow-block fb-error" style="font-size:11px;">res.ok = false</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-block fb-error" style="font-size:11px;">throw Error</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-block fb-error" style="font-size:11px;">muestra error</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border:1px solid #AFA9EC;"></div>Dispara el efecto</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1px solid #EF9F27;"></div>useEffect</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border:1px solid #85B7EB;"></div>Petición HTTP</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1px solid #5DCAA5;"></div>Éxito</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FCEBEB;border:1px solid #F09595;"></div>Error</div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Los 4 estados -->
+    <div class="diagram-panel" id="panel-estados">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Este componente maneja 4 estados. Cada uno tiene una responsabilidad distinta:</p>
+      <div class="states-grid">
+        <div class="state-card">
+          <div class="state-name">usuario — string</div>
+          <div class="state-desc">El texto que el usuario escribe en el input. Inicia en <code>''</code>. Cada cambio dispara el efecto porque está en el array de dependencias.</div>
+        </div>
+        <div class="state-card">
+          <div class="state-name">datos — object | null</div>
+          <div class="state-desc">La respuesta de la API de GitHub. Inicia en <code>null</code>. Cuando llega la respuesta, guarda el objeto con <code>login</code>, <code>avatar_url</code>, <code>public_repos</code>, etc.</div>
+        </div>
+        <div class="state-card">
+          <div class="state-name">cargando — boolean</div>
+          <div class="state-desc">Indica si la petición está en curso. Se pone en <code>true</code> al iniciar el fetch y vuelve a <code>false</code> cuando termina — exitosa o con error.</div>
+        </div>
+        <div class="state-card">
+          <div class="state-name">error — string | null</div>
+          <div class="state-desc">Mensaje de error si el usuario no existe o falla la red. Inicia en <code>null</code>. Se limpia a <code>null</code> al iniciar cada nueva búsqueda.</div>
+        </div>
+      </div>
+      <div class="note note-info" style="margin-top:12px;">
+        Este patrón de 4 estados (<code>datos</code>, <code>cargando</code>, <code>error</code>, más el valor que dispara la búsqueda) es el más común en aplicaciones React que consumen APIs. Vale la pena memorizarlo.
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section-label">⚙️ Setup del proyecto</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">01</div><div class="step-title">Crear el proyecto</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm create vite@latest github-app -- --template react</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">02</div><div class="step-title">Entrar al proyecto</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>cd github-app</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">03</div><div class="step-title">Iniciar el servidor</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm run dev</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">04</div><div class="step-title">Limpiar archivos base</div></div>
+    <div class="step-body">
+      <ul>
+        <li>En <code>src/index.css</code> reemplaza todo el contenido por el reset básico</li>
+        <li>En <code>src/App.css</code> borra todo el contenido</li>
+        <li>En <code>src/App.jsx</code> deja solo el componente vacío</li>
+      </ul>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">src/index.css</div>
+          <pre><code>* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+          <div class="code-label">src/App.jsx</div>
+          <pre><code>function App() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Buscador de GitHub&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">05</div><div class="step-title">Crear la carpeta de componentes</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/</code> crea la carpeta <code>components/</code>.</p>
+    </div>
+  </div>
+
+  <!-- Ejercicio -->
+  <div class="section-label">📋 Pasos del ejercicio</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">06</div><div class="step-title">Crear BuscadorGithub.jsx</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/components/</code> crea <code>BuscadorGithub.jsx</code>. Escribe <code>rfce</code> + Tab para generar la estructura base.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">07</div><div class="step-title">Importar useState y useEffect</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { useState, useEffect } from 'react';</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">08</div><div class="step-title">Declarar los 4 estados</div></div>
+    <div class="step-body">
+      <p>Este componente necesita 4 estados. Declara cada uno con su valor inicial.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>const [usuario,  setUsuario]  = useState('');
+const [datos,    setDatos]    = useState(null);
+const [cargando, setCargando] = useState(false);
+const [error,    setError]    = useState(null);</code></pre>
+          <div class="note note-info">
+            <code>datos</code> inicia en <code>null</code> porque todavía no hay ninguna respuesta de la API. El JSX usará esto para decidir si mostrar la tarjeta o no.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">09</div><div class="step-title">Escribir el useEffect con fetch</div></div>
+    <div class="step-body">
+      <p>El efecto se dispara cada vez que <code>usuario</code> cambia. Si el input está vacío, sale sin hacer nada.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>useEffect(() => {
+
+  if (!usuario.trim()) return;  // si está vacío, no buscar
+
+  setCargando(true);
+  setError(null);               // limpiar error anterior
+
+  fetch(`https://api.github.com/users/${usuario}`)
+    .then((res) => {
+      if (!res.ok) throw new Error('Usuario no encontrado');
+      return res.json();
+    })
+    .then((json) => {
+      setDatos(json);
+      setCargando(false);
+    })
+    .catch((err) => {
+      setError(err.message);
+      setDatos(null);
+      setCargando(false);
+    });
+
+}, [usuario]);</code></pre>
+          <div class="note note-info">
+            <code>[usuario]</code> en el array de dependencias significa que el efecto corre cada vez que el input cambia. A diferencia del reloj donde usamos <code>[]</code>, aquí sí necesitamos que el efecto reaccione a un valor.
+          </div>
+          <div class="note note-info">
+            <code>res.ok</code> es <code>true</code> si el status HTTP es 200-299. Si el usuario no existe, GitHub devuelve un status 404 — <code>res.ok</code> será <code>false</code> y lanzamos el error manualmente con <code>throw</code>.
+          </div>
+          <div class="note">
+            ⚠️ <code>fetch</code> no lanza un error automáticamente cuando el status es 404 o 500 — solo falla si hay un problema de red. Por eso siempre hay que verificar <code>res.ok</code> manualmente.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">10</div><div class="step-title">Escribir el JSX</div></div>
+    <div class="step-body">
+      <p>Muestra el input, y de forma condicional: el spinner de carga, el mensaje de error o la tarjeta del usuario.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>return (
+  &lt;div className="buscador-contenedor"&gt;
+    &lt;h1 className="buscador-titulo"&gt;Buscador de GitHub&lt;/h1&gt;
+
+    &lt;input
+      type="text"
+      placeholder="Escribe un usuario de GitHub..."
+      value={usuario}
+      onChange={(e) =&gt; setUsuario(e.target.value)}
+      className="buscador-input"
+    /&gt;
+
+    {cargando &amp;&amp; &lt;p className="buscador-mensaje"&gt;Buscando...&lt;/p&gt;}
+
+    {error &amp;&amp; &lt;p className="buscador-error"&gt;{error}&lt;/p&gt;}
+
+    {datos &amp;&amp; !cargando &amp;&amp; (
+      &lt;div className="perfil-card"&gt;
+        &lt;img
+          src={datos.avatar_url}
+          alt={datos.login}
+          className="perfil-avatar"
+        /&gt;
+        &lt;div className="perfil-info"&gt;
+          &lt;h2 className="perfil-nombre"&gt;{datos.name || datos.login}&lt;/h2&gt;
+          &lt;p className="perfil-usuario"&gt;@{datos.login}&lt;/p&gt;
+          &lt;p className="perfil-repos"&gt;
+            Repositorios públicos: &lt;strong&gt;{datos.public_repos}&lt;/strong&gt;
+          &lt;/p&gt;
+          {datos.bio &amp;&amp; &lt;p className="perfil-bio"&gt;{datos.bio}&lt;/p&gt;}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    )}
+
+  &lt;/div&gt;
+);</code></pre>
+          <div class="note note-info">
+            <code>datos.name || datos.login</code> — algunos usuarios de GitHub no tienen nombre configurado. Si <code>name</code> es <code>null</code>, mostramos <code>login</code> como fallback.
+          </div>
+          <div class="note note-info">
+            <code>{datos.bio && ...}</code> — la bio es opcional. Si el usuario no tiene bio, no renderiza nada. Es el mismo patrón de renderizado condicional con <code>&&</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">11</div><div class="step-title">Exportar el componente</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>export default BuscadorGithub;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">12</div><div class="step-title">Crear el CSS</div></div>
+    <div class="step-body">
+      <p>Crea <code>src/components/BuscadorGithub.css</code> e impórtalo en la primera línea del componente.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">BuscadorGithub.jsx — línea 1</div>
+          <pre><code>import './BuscadorGithub.css';</code></pre>
+          <div class="code-label">BuscadorGithub.css</div>
+          <pre><code>.buscador-contenedor {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 24px;
+}
+
+.buscador-titulo {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #1a1917;
+}
+
+.buscador-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.buscador-mensaje {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.buscador-error {
+  font-size: 14px;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.perfil-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: #f7f6f2;
+  border: 1px solid #e2e0d8;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.perfil-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.perfil-info { flex: 1; }
+
+.perfil-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1917;
+  margin-bottom: 2px;
+}
+
+.perfil-usuario {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.perfil-repos {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.perfil-bio {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">13</div><div class="step-title">Importar y usar en App.jsx</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import './App.css';
+import BuscadorGithub from './components/BuscadorGithub';
+
+function App() {
+  return (
+    &lt;div&gt;
+      &lt;BuscadorGithub /&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra</div>
+  <div class="challenge">
+    <div class="challenge-title">Buscar solo al presionar Enter o un botón</div>
+    <p>Actualmente la búsqueda se dispara con cada letra que escribe el usuario. Modifica el componente para que solo busque cuando el usuario presione Enter o haga clic en un botón "Buscar". Requiere separar el estado del input del estado que dispara el efecto.</p>
+    <div class="spoiler" style="margin-top: 12px;">
+      <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar solución</button>
+      <div class="spoiler-content">
+        <pre><code>const [inputValue, setInputValue] = useState('');
+const [usuario,    setUsuario]    = useState('');
+
+// El efecto ahora depende de usuario, no de inputValue
+useEffect(() => { ... }, [usuario]);
+
+// El input actualiza inputValue, no usuario
+&lt;input
+  value={inputValue}
+  onChange={(e) =&gt; setInputValue(e.target.value)}
+  onKeyDown={(e) =&gt; {
+    if (e.key === 'Enter') setUsuario(inputValue);
+  }}
+/&gt;
+
+&lt;button onClick={() =&gt; setUsuario(inputValue)}&gt;
+  Buscar
+&lt;/button&gt;</code></pre>
+        <div class="note note-green">
+          Ahora hay dos estados separados: <code>inputValue</code> para lo que el usuario escribe y <code>usuario</code> para lo que dispara la búsqueda. El efecto solo corre cuando <code>usuario</code> cambia — es decir, al presionar Enter o el botón.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preguntas -->
+  <div class="section-label">❓ Preguntas para reflexionar</div>
+  <ul class="questions">
+    <li class="question">
+      <div class="q-num">1</div>
+      <div class="q-text">¿Por qué el array de dependencias tiene <code>[usuario]</code> y no <code>[]</code> como en el reloj?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">2</div>
+      <div class="q-text">¿Qué pasaría si el usuario escribe muy rápido letra por letra — se haría un fetch por cada letra?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">3</div>
+      <div class="q-text">¿Por qué verificamos <code>res.ok</code> antes de llamar <code>.json()</code>? ¿No es suficiente con el <code>.catch()</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">4</div>
+      <div class="q-text">¿Para qué sirve el estado <code>cargando</code>? ¿Qué experiencia tendría el usuario sin él?</div>
+    </li>
+  </ul>
+
+</div>
+
+<script>
+  function showDiagram(id, tabBtn) {
+    document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
+  }
+  function toggle(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.toggle('visible');
+    btn.classList.toggle('open', isOpen);
+    const label = btn.querySelector('.arrow').nextSibling.textContent.replace(/^\s*(Mostrar|Ocultar)\s+/, '').trim();
+    btn.querySelector('.arrow').nextSibling.textContent = ' ' + (isOpen ? 'Ocultar ' : 'Mostrar ') + label;
+  }
+</script>
+</body>
+</html>

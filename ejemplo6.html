@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejemplo 6 — React Router + localStorage</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #ffffff; --border: #e2e0d8; --border-soft: #ede9e2;
+      --text: #1a1917; --muted: #6b6860; --accent: #3d3bcc;
+      --accent-bg: #eeeef9; --accent-border: #c7c6f0;
+      --green: #16a34a; --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb; --warn-border: #fde68a; --warn-text: #92400e;
+      --mono: 'IBM Plex Mono', monospace; --sans: 'Sora', sans-serif;
+      --radius: 10px; --radius-sm: 6px;
+    }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); padding: 40px 20px 80px; line-height: 1.7; }
+    .page { max-width: 740px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; margin-bottom: 20px; }
+    .back-link:hover { color: var(--accent); }
+    .header { border-bottom: 1.5px solid var(--border); padding-bottom: 20px; margin-bottom: 32px; }
+    .header-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .header h1 { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { font-size: 11.5px; font-family: var(--mono); background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 4px; padding: 2px 8px; }
+    .tag-time { background: #f3f4f6; color: var(--muted); border-color: var(--border); }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin: 36px 0 14px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+    .step-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; color: var(--muted); flex-shrink: 0; font-family: var(--mono); }
+    .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .step-body { padding: 0 16px 14px 54px; font-size: 13.5px; color: var(--muted); }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+    code { font-family: var(--mono); font-size: 12px; background: #f1f0ec; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+    pre { background: #1e1d1b; border-radius: var(--radius-sm); padding: 14px 16px; margin: 8px 0; overflow-x: auto; }
+    pre code { font-size: 12.5px; background: none; border: none; padding: 0; color: #d4d0c8; line-height: 1.65; }
+    .code-label { font-size: 11px; font-family: var(--mono); color: var(--muted); margin: 10px 0 3px; }
+    .spoiler { margin-top: 10px; }
+    .btn-show { font-family: var(--sans); font-size: 12px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 12px; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s, border-color 0.15s; }
+    .btn-show:hover { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+    .btn-show .arrow { font-size: 9px; transition: transform 0.2s; }
+    .btn-show.open .arrow { transform: rotate(90deg); }
+    .spoiler-content { display: none; margin-top: 10px; animation: fadeIn 0.2s ease; }
+    .spoiler-content.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .note { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12.5px; color: var(--warn-text); margin: 8px 0; line-height: 1.6; }
+    .note-info { background: var(--accent-bg); border-color: var(--accent-border); color: #3730a3; }
+    .note-green { background: var(--green-bg); border-color: #bbf7d0; color: #166534; }
+    .challenge { background: var(--green-bg); border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px 18px; margin-top: 4px; }
+    .challenge-title { font-size: 13.5px; font-weight: 500; color: var(--green); margin-bottom: 4px; }
+    .challenge p { font-size: 13px; color: #166534; }
+    .questions { list-style: none; padding: 0; }
+    .question { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); align-items: flex-start; }
+    .question:last-child { border-bottom: none; }
+    .q-num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; font-family: var(--mono); color: var(--muted); flex-shrink: 0; margin-top: 1px; }
+    .q-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+
+    /* ── Diagrama ── */
+    .diagram-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 10px; }
+    .diagram-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
+    .diagram-tab { font-size: 12px; font-family: var(--mono); padding: 5px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--muted); cursor: pointer; transition: all .15s; }
+    .diagram-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .diagram-panel { display: none; }
+    .diagram-panel.active { display: block; }
+
+    /* páginas */
+    .pages-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .page-box { border-radius: 8px; padding: 12px 16px; font-size: 12.5px; font-family: var(--mono); font-weight: 500; text-align: center; min-width: 130px; }
+    .page-box-sub { font-family: var(--sans); font-size: 11px; font-weight: 400; opacity: .7; margin-top: 3px; }
+    .pb-home    { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #3C3489; }
+    .pb-users   { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #085041; }
+    .pb-detail  { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #633806; }
+    .pb-navbar  { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #444441; }
+    .pb-storage { background: #FAECE7; border: 1.5px solid #F0997B; color: #712B13; }
+
+    .route-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+    .route-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--border); }
+    .route-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; line-height: 1.5; }
+    .route-table tr:last-child td { border-bottom: none; }
+    .route-table td:first-child { font-family: var(--mono); font-size: 11.5px; color: var(--accent); }
+    .route-table td:nth-child(2) { font-family: var(--mono); font-size: 11.5px; color: #085041; }
+
+    .diagram-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* mock nav */
+    .mock-browser { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .mock-bar { background: #f1f0ec; padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+    .mock-dots { display: flex; gap: 5px; }
+    .mock-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .mock-url { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; flex: 1; }
+    .mock-nav { background: #3d3bcc; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .mock-nav-brand { font-size: 13px; font-weight: 600; color: #fff; }
+    .mock-nav-links { display: flex; gap: 14px; }
+    .mock-nav-link { font-size: 12px; color: rgba(255,255,255,0.8); text-decoration: none; }
+    .mock-nav-link.active { color: #fff; font-weight: 600; border-bottom: 2px solid #fff; padding-bottom: 1px; }
+    .mock-nav-user { font-size: 11px; color: rgba(255,255,255,0.65); font-style: italic; }
+    .mock-body { padding: 20px; min-height: 120px; }
+    .mock-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .mock-sub { font-size: 13px; color: var(--muted); }
+    .mock-input-row { display: flex; gap: 8px; margin-top: 12px; }
+    .mock-input { flex: 1; height: 30px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: 12px; padding: 0 10px; }
+    .mock-btn { height: 30px; padding: 0 14px; border-radius: 6px; background: var(--accent); color: #fff; font-size: 12px; border: none; }
+    .mock-user-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+    .mock-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+    .mock-link { font-size: 12px; color: var(--accent); cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="index.html" class="back-link">← Volver a ejercicios</a>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Ejemplo 6</div>
+    <h1>🗺️ React Router + localStorage</h1>
+    <div class="header-meta">
+      <span class="tag">BrowserRouter</span>
+      <span class="tag">Routes / Route</span>
+      <span class="tag">Link</span>
+      <span class="tag">useParams</span>
+      <span class="tag">localStorage</span>
+      <span class="tag">useEffect</span>
+      <span class="tag tag-time">⏱ 30–35 min</span>
+    </div>
+  </div>
+
+  <!-- Diagrama -->
+  <div class="section-label">🧩 Arquitectura de la app</div>
+  <div class="diagram-section">
+    <div class="diagram-tabs">
+      <button type="button" class="diagram-tab active" onclick="showDiagram('estructura', this)">Estructura de páginas</button>
+      <button type="button" class="diagram-tab" onclick="showDiagram('rutas', this)">Rutas y URLs</button>
+      <button type="button" class="diagram-tab" onclick="showDiagram('preview', this)">Vista previa</button>
+    </div>
+
+    <!-- Panel 1: Estructura -->
+    <div class="diagram-panel active" id="panel-estructura">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">La app tiene 3 páginas y un componente de navegación compartido. El nombre del usuario se persiste en <code>localStorage</code> para que sobreviva entre recargas.</p>
+      <div class="pages-row">
+        <div class="page-box pb-navbar">
+          Navbar.jsx
+          <div class="page-box-sub">siempre visible · muestra nombre</div>
+        </div>
+      </div>
+      <div class="pages-row">
+        <div class="page-box pb-home">
+          Home.jsx
+          <div class="page-box-sub">input del nombre · /</div>
+        </div>
+        <div class="page-box pb-users">
+          Usuarios.jsx
+          <div class="page-box-sub">lista de usuarios · /usuarios</div>
+        </div>
+        <div class="page-box pb-detail">
+          Detalle.jsx
+          <div class="page-box-sub">perfil individual · /usuarios/:id</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:12px;">
+        <div class="page-box pb-storage" style="min-width:200px;">
+          localStorage
+          <div class="page-box-sub">persiste el nombre entre recargas</div>
+        </div>
+      </div>
+      <div class="diagram-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#F1EFE8;border:1px solid #B4B2A9;"></div>Siempre visible</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border:1px solid #AFA9EC;"></div>Página principal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1px solid #5DCAA5;"></div>Lista</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1px solid #EF9F27;"></div>Detalle con useParams</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FAECE7;border:1px solid #F0997B;"></div>localStorage</div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Rutas -->
+    <div class="diagram-panel" id="panel-rutas">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Cada URL corresponde a un componente. React Router decide cuál renderizar según la URL actual del navegador.</p>
+      <table class="route-table">
+        <thead>
+          <tr>
+            <th>URL</th>
+            <th>Componente</th>
+            <th style="color:var(--muted);font-weight:500;">Qué muestra</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>/</td>
+            <td>Home.jsx</td>
+            <td style="font-size:12.5px;color:var(--muted);">Bienvenida + input para guardar el nombre del usuario</td>
+          </tr>
+          <tr>
+            <td>/usuarios</td>
+            <td>Usuarios.jsx</td>
+            <td style="font-size:12.5px;color:var(--muted);">Lista de 4 usuarios con Link a su detalle</td>
+          </tr>
+          <tr>
+            <td>/usuarios/:id</td>
+            <td>Detalle.jsx</td>
+            <td style="font-size:12.5px;color:var(--muted);">Perfil del usuario. <code>:id</code> es el parámetro dinámico — se lee con <code>useParams()</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note note-info" style="margin-top:12px;">
+        <code>:id</code> en la ruta es un <strong>parámetro dinámico</strong>. Si la URL es <code>/usuarios/2</code>, entonces <code>useParams()</code> devuelve <code>{ id: "2" }</code>. Así un solo componente sirve para mostrar cualquier usuario.
+      </div>
+    </div>
+
+    <!-- Panel 3: Preview -->
+    <div class="diagram-panel" id="panel-preview">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Así se ve la app en el navegador. El Navbar siempre muestra el nombre guardado en localStorage.</p>
+      <div class="mock-browser">
+        <div class="mock-bar">
+          <div class="mock-dots">
+            <div class="mock-dot" style="background:#ED6B5A;"></div>
+            <div class="mock-dot" style="background:#F5BE4D;"></div>
+            <div class="mock-dot" style="background:#61C554;"></div>
+          </div>
+          <div class="mock-url">localhost:5173/usuarios</div>
+        </div>
+        <div class="mock-nav">
+          <span class="mock-nav-brand">MiApp</span>
+          <div class="mock-nav-links">
+            <span class="mock-nav-link">Inicio</span>
+            <span class="mock-nav-link active">Usuarios</span>
+          </div>
+          <span class="mock-nav-user">Hola, Jorge</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-title">Lista de usuarios</div>
+          <div class="mock-sub" style="margin-bottom:12px;">Haz clic en un usuario para ver su perfil</div>
+          <div class="mock-user-row">
+            <div class="mock-avatar" style="background:#EEEDFE;color:#3C3489;">AG</div>
+            <span style="font-size:13px;flex:1;">Ana García</span>
+            <span class="mock-link">Ver perfil →</span>
+          </div>
+          <div class="mock-user-row">
+            <div class="mock-avatar" style="background:#E1F5EE;color:#085041;">LM</div>
+            <span style="font-size:13px;flex:1;">Luis Martínez</span>
+            <span class="mock-link">Ver perfil →</span>
+          </div>
+          <div class="mock-user-row">
+            <div class="mock-avatar" style="background:#FAEEDA;color:#633806;">ML</div>
+            <span style="font-size:13px;flex:1;">María López</span>
+            <span class="mock-link">Ver perfil →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Recordatorio Tailwind -->
+  <div class="section-label">🎨 Recordatorio — instalar TailwindCSS</div>
+  <div class="step">
+    <div class="step-header"><div class="step-num" style="background:#faeeda;border-color:#ef9f27;color:#633806;">TW</div><div class="step-title">Instalar Tailwind antes de empezar</div></div>
+    <div class="step-body">
+      <p>Este ejemplo usa TailwindCSS para los estilos. Si ya lo instalaste en el proyecto, salta este bloque. Si es un proyecto nuevo, corre estos comandos después de crear el proyecto:</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comandos</button>
+        <div class="spoiler-content">
+          <pre><code>npm install -D tailwindcss@3 postcss autoprefixer</code></pre>
+          <div class="note">⚠️ Espera a que termine completamente antes de continuar.</div>
+          <pre><code>npx tailwindcss init -p</code></pre>
+          <div class="code-label">tailwind.config.js — actualizar content</div>
+          <pre><code>content: [
+  "./index.html",
+  "./src/**/*.{js,jsx,ts,tsx}",
+],</code></pre>
+          <div class="code-label">src/index.css — reemplazar todo el contenido</div>
+          <pre><code>@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+          <div class="note note-info">
+            Con Tailwind instalado <strong>no necesitas crear archivos <code>.css</code> por componente</strong> — los estilos van directamente en el <code>className</code> del JSX usando las clases utilitarias de Tailwind.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section-label">⚙️ Setup del proyecto</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">01</div><div class="step-title">Crear el proyecto</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm create vite@latest router-app -- --template react</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">02</div><div class="step-title">Entrar al proyecto e instalar React Router</div></div>
+    <div class="step-body">
+      <p>React Router no viene incluido en Vite — hay que instalarlo por separado.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comandos</button>
+        <div class="spoiler-content">
+          <pre><code>cd router-app</code></pre>
+          <pre><code>npm install react-router-dom</code></pre>
+          <div class="note note-info">
+            <code>react-router-dom</code> es la versión para web. Existe también <code>react-router-native</code> para React Native, pero en proyectos web siempre se usa <code>react-router-dom</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">03</div><div class="step-title">Iniciar el servidor</div></div>
+    <div class="step-body">
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar comando</button>
+        <div class="spoiler-content">
+          <pre><code>npm run dev</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">04</div><div class="step-title">Limpiar archivos base</div></div>
+    <div class="step-body">
+      <ul>
+        <li>En <code>src/index.css</code> agrega las directivas de Tailwind y el reset (ver bloque de instalación arriba)</li>
+        <li>En <code>src/App.jsx</code> deja solo el componente vacío — no necesitas importar <code>App.css</code></li>
+      </ul>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">src/index.css</div>
+          <pre><code>* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+          <div class="code-label">src/App.jsx</div>
+          <pre><code>function App() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Router App&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">05</div><div class="step-title">Crear las carpetas de páginas y componentes</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/</code> crea dos carpetas: <code>pages/</code> para las vistas y <code>components/</code> para el Navbar.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar estructura</button>
+        <div class="spoiler-content">
+          <pre><code>src/
+  pages/
+    Home.jsx
+    Usuarios.jsx
+    Detalle.jsx
+  components/
+    Navbar.jsx
+  App.jsx
+  App.css
+  index.css</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejercicio -->
+  <div class="section-label">📋 Pasos del ejercicio</div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">06</div><div class="step-title">Crear las páginas base</div></div>
+    <div class="step-body">
+      <p>Crea los tres archivos en <code>src/pages/</code> con contenido mínimo para confirmar que la navegación funciona antes de agregar lógica.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <div class="code-label">src/pages/Home.jsx</div>
+          <pre><code>function Home() {
+  return &lt;h2&gt;Página de inicio&lt;/h2&gt;;
+}
+
+export default Home;</code></pre>
+          <div class="code-label">src/pages/Usuarios.jsx</div>
+          <pre><code>function Usuarios() {
+  return &lt;h2&gt;Lista de usuarios&lt;/h2&gt;;
+}
+
+export default Usuarios;</code></pre>
+          <div class="code-label">src/pages/Detalle.jsx</div>
+          <pre><code>function Detalle() {
+  return &lt;h2&gt;Detalle del usuario&lt;/h2&gt;;
+}
+
+export default Detalle;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">07</div><div class="step-title">Crear el Navbar con Link y localStorage</div></div>
+    <div class="step-body">
+      <p>Dentro de <code>src/components/</code> crea el archivo <code>Navbar.jsx</code>. El Navbar usa <code>Link</code> en lugar de <code>&lt;a&gt;</code> para navegar sin recargar la página. También lee el nombre guardado en <code>localStorage</code> para mostrarlo.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { Link } from 'react-router-dom';
+
+function Navbar() {
+  const nombre = localStorage.getItem('nombreUsuario');
+
+  return (
+    &lt;nav className="bg-indigo-700 text-white px-6 py-3 flex items-center gap-6"&gt;
+      &lt;span className="font-semibold text-base"&gt;MiApp&lt;/span&gt;
+      &lt;div className="flex gap-4 flex-1"&gt;
+        &lt;Link to="/" className="text-white/80 hover:text-white text-sm"&gt;Inicio&lt;/Link&gt;
+        &lt;Link to="/usuarios" className="text-white/80 hover:text-white text-sm"&gt;Usuarios&lt;/Link&gt;
+      &lt;/div&gt;
+      {nombre &amp;&amp; (
+        &lt;span className="text-white/60 text-xs italic"&gt;Hola, {nombre}&lt;/span&gt;
+      )}
+    &lt;/nav&gt;
+  );
+}
+
+export default Navbar;</code></pre>
+          <div class="note note-info">
+            <code>Link</code> de React Router funciona como un <code>&lt;a&gt;</code> pero intercepta el clic y actualiza la URL sin recargar la página — por eso la app se siente rápida. Usa <code>to=""</code> en lugar de <code>href=""</code>.
+          </div>
+          <div class="note note-info">
+            <code>localStorage.getItem('nombreUsuario')</code> lee directamente del storage del navegador. Si el usuario aún no guardó su nombre, devuelve <code>null</code> y el saludo no aparece gracias al <code>&amp;&amp;</code> condicional.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">08</div><div class="step-title">Configurar las rutas en App.jsx</div></div>
+    <div class="step-body">
+      <p>Aquí se define qué componente renderiza React según la URL. <code>BrowserRouter</code> envuelve todo, <code>Routes</code> agrupa las rutas y cada <code>Route</code> define un par URL → componente.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home     from './pages/Home';
+import Usuarios from './pages/Usuarios';
+import Detalle  from './pages/Detalle';
+import Navbar   from './components/Navbar';
+
+function App() {
+  return (
+    &lt;BrowserRouter&gt;
+      &lt;Navbar /&gt;
+      &lt;div className="max-w-2xl mx-auto px-5 py-8"&gt;
+        &lt;Routes&gt;
+          &lt;Route path="/"             element={&lt;Home /&gt;}     /&gt;
+          &lt;Route path="/usuarios"     element={&lt;Usuarios /&gt;} /&gt;
+          &lt;Route path="/usuarios/:id" element={&lt;Detalle /&gt;}  /&gt;
+        &lt;/Routes&gt;
+      &lt;/div&gt;
+    &lt;/BrowserRouter&gt;
+  );
+}
+
+export default App;</code></pre>
+          <div class="note note-info">
+            <code>BrowserRouter</code> debe envolver todo porque provee el contexto de navegación. <code>Navbar</code> está fuera de <code>Routes</code> para que siempre sea visible sin importar la ruta.
+          </div>
+          <div class="note note-info">
+            <code>/usuarios/:id</code> — los dos puntos antes de <code>id</code> indican que es un parámetro dinámico. Cualquier cosa que vaya ahí (<code>/usuarios/1</code>, <code>/usuarios/42</code>) renderizará el componente <code>Detalle</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">09</div><div class="step-title">Desarrollar Home.jsx con localStorage</div></div>
+    <div class="step-body">
+      <p>Home permite al usuario escribir su nombre y guardarlo en <code>localStorage</code>. Usa <code>useEffect</code> para cargar el nombre guardado al montar el componente.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { useState, useEffect } from 'react';
+
+function Home() {
+  const [nombre, setNombre] = useState('');
+
+  useEffect(() => {
+    const guardado = localStorage.getItem('nombreUsuario');
+    if (guardado) setNombre(guardado);
+  }, []);
+
+  function guardarNombre() {
+    localStorage.setItem('nombreUsuario', nombre);
+    alert(`Nombre guardado: ${nombre}`);
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;h2 className="text-2xl font-semibold mb-2"&gt;Bienvenido&lt;/h2&gt;
+      &lt;p className="text-gray-500 text-sm mb-4"&gt;Escribe tu nombre para personalizar la app.&lt;/p&gt;
+      &lt;div className="flex gap-3"&gt;
+        &lt;input
+          type="text"
+          placeholder="Tu nombre"
+          value={nombre}
+          onChange={(e) =&gt; setNombre(e.target.value)}
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        /&gt;
+        &lt;button
+          onClick={guardarNombre}
+          className="bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm"
+        &gt;
+          Guardar
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default Home;</code></pre>
+          <div class="note note-info">
+            El <code>useEffect</code> con <code>[]</code> carga el nombre guardado al montar. Así si el usuario recarga la página, el input ya aparece con su nombre anterior.
+          </div>
+          <div class="note">
+            ⚠️ <code>localStorage</code> solo guarda strings. Si necesitas guardar un objeto o array, usa <code>JSON.stringify()</code> al guardar y <code>JSON.parse()</code> al leer.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">10</div><div class="step-title">Desarrollar Usuarios.jsx con Link</div></div>
+    <div class="step-body">
+      <p>Muestra una lista de usuarios hardcodeados. Cada uno tiene un <code>Link</code> que navega a su página de detalle pasando el <code>id</code> en la URL.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { Link } from 'react-router-dom';
+
+const usuarios = [
+  { id: 1, nombre: 'Ana García',    rol: 'Frontend Developer' },
+  { id: 2, nombre: 'Luis Martínez', rol: 'Backend Developer'  },
+  { id: 3, nombre: 'María López',   rol: 'UX Designer'        },
+  { id: 4, nombre: 'Carlos Ruiz',   rol: 'DevOps Engineer'    },
+];
+
+function Usuarios() {
+  return (
+    &lt;div&gt;
+      &lt;h2 className="text-2xl font-semibold mb-2"&gt;Lista de usuarios&lt;/h2&gt;
+      &lt;p className="text-gray-500 text-sm mb-4"&gt;Haz clic en un usuario para ver su perfil.&lt;/p&gt;
+      &lt;ul className="flex flex-col gap-2"&gt;
+        {usuarios.map((u) =&gt; (
+          &lt;li key={u.id} className="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3 bg-gray-50"&gt;
+            &lt;div&gt;
+              &lt;p className="text-sm font-semibold"&gt;{u.nombre}&lt;/p&gt;
+              &lt;p className="text-xs text-gray-400"&gt;{u.rol}&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;Link to={`/usuarios/${u.id}`} className="text-indigo-700 text-sm"&gt;
+              Ver perfil →
+            &lt;/Link&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default Usuarios;</code></pre>
+          <div class="note note-info">
+            <code>to={`/usuarios/${u.id}`}</code> construye la URL dinámicamente con el id de cada usuario. Al hacer clic en Ana García, navega a <code>/usuarios/1</code>. Al hacer clic en Luis, navega a <code>/usuarios/2</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">11</div><div class="step-title">Desarrollar Detalle.jsx con useParams</div></div>
+    <div class="step-body">
+      <p><code>useParams</code> lee el parámetro dinámico <code>:id</code> de la URL para saber qué usuario mostrar.</p>
+      <div class="spoiler">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar código</button>
+        <div class="spoiler-content">
+          <pre><code>import { useParams, Link } from 'react-router-dom';
+
+const usuarios = [
+  { id: 1, nombre: 'Ana García',    rol: 'Frontend Developer', lenguaje: 'React'      },
+  { id: 2, nombre: 'Luis Martínez', rol: 'Backend Developer',  lenguaje: 'Node.js'    },
+  { id: 3, nombre: 'María López',   rol: 'UX Designer',        lenguaje: 'Figma'      },
+  { id: 4, nombre: 'Carlos Ruiz',   rol: 'DevOps Engineer',    lenguaje: 'Kubernetes' },
+];
+
+function Detalle() {
+  const { id } = useParams();
+
+  const usuario = usuarios.find((u) =&gt; u.id === Number(id));
+
+  if (!usuario) {
+    return (
+      &lt;div&gt;
+        &lt;p className="text-gray-500 mb-3"&gt;Usuario no encontrado.&lt;/p&gt;
+        &lt;Link to="/usuarios" className="text-indigo-700 text-sm"&gt;← Volver a la lista&lt;/Link&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;Link to="/usuarios" className="text-indigo-700 text-sm block mb-5"&gt;
+        ← Volver a la lista
+      &lt;/Link&gt;
+      &lt;div className="border border-gray-200 rounded-xl p-6 bg-gray-50"&gt;
+        &lt;h2 className="text-xl font-semibold mb-1"&gt;{usuario.nombre}&lt;/h2&gt;
+        &lt;p className="text-gray-500 text-sm mb-2"&gt;{usuario.rol}&lt;/p&gt;
+        &lt;p className="text-sm text-gray-600"&gt;
+          Herramienta favorita: &lt;strong&gt;{usuario.lenguaje}&lt;/strong&gt;
+        &lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default Detalle;</code></pre>
+          <div class="note note-info">
+            <code>useParams()</code> devuelve un objeto con los parámetros de la URL. Como <code>:id</code> en la ruta, <code>id</code> llega como string — por eso usamos <code>Number(id)</code> para convertirlo antes de comparar con los ids del array que son números.
+          </div>
+          <div class="note note-info">
+            <code>.find()</code> recorre el array y devuelve el primer elemento que cumple la condición. Si ninguno cumple, devuelve <code>undefined</code> — por eso verificamos con el <code>if (!usuario)</code> antes de renderizar el perfil.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header"><div class="step-num">12</div><div class="step-title">Verificar que todo funciona</div></div>
+    <div class="step-body">
+      <p>Con Tailwind no necesitas un archivo <code>App.css</code> separado — todos los estilos ya están en el <code>className</code> de cada componente. Verifica que la app funciona correctamente navegando entre las tres páginas y guardando tu nombre en Home.</p>
+      <div class="note note-green">
+        ✅ Si el Navbar muestra "Hola, [tu nombre]" después de guardarlo en Home y navegar a Usuarios, <code>localStorage</code> está funcionando correctamente.
+      </div>
+      <div class="spoiler" style="display:none">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar CSS</button>
+        <div class="spoiler-content">
+          <pre><code>/* Navbar */
+.navbar {
+  background: #3d3bcc;
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-brand {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.navbar-links a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.navbar-links a:hover { color: #fff; }
+
+.navbar-usuario {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  font-style: italic;
+}
+
+/* Contenido */
+.contenido {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.pagina h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.pagina p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* Home */
+.form-nombre {
+  display: flex;
+  gap: 10px;
+}
+
+.form-nombre input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-nombre button {
+  padding: 8px 20px;
+  background: #3d3bcc;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Lista de usuarios */
+.lista-usuarios {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.usuario-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.usuario-item strong {
+  display: block;
+  font-size: 14px;
+}
+
+.usuario-item span {
+  font-size: 12px;
+  color: #888;
+}
+
+.usuario-item a {
+  color: #3d3bcc;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+/* Detalle */
+.volver {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #3d3bcc;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.perfil-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 24px;
+  background: #f7f6f2;
+}
+
+.perfil-card h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.perfil-card p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 6px;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Reflexión navbar -->
+  <div class="section-label">💡 ¿Te diste cuenta?</div>
+  <div class="step" style="border-color: #c7c6f0;">
+    <div class="step-header">
+      <div class="step-num" style="background:#eeeef9;border-color:#c7c6f0;color:#3d3bcc;">!</div>
+      <div class="step-title" style="color:#3d3bcc;">El nombre no se actualiza en el Navbar hasta que recargas la página</div>
+    </div>
+    <div class="step-body">
+      <p>Si guardaste tu nombre en Home y luego miraste el Navbar, probablemente no cambió hasta que hiciste F5. Eso no es un bug — tiene una explicación lógica.</p>
+
+      <div style="background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--radius-sm);padding:12px 14px;margin:10px 0;font-size:13px;color:#3730a3;line-height:1.7;">
+        <strong>¿Qué está pasando?</strong><br><br>
+        El <code>Navbar</code> lee <code>localStorage</code> directamente cuando se monta por primera vez. Después de eso, nadie le avisa que el valor cambió — <code>localStorage</code> no es reactivo como <code>useState</code>. React solo re-renderiza un componente cuando cambia su estado o sus props. Como el Navbar no tiene estado propio ni recibió props nuevas, no tiene razón para volver a ejecutarse y leer el valor actualizado.<br><br>
+        En otras palabras: <code>localStorage</code> guarda el dato, pero no le <em>dice</em> a nadie que cambió.
+      </div>
+
+      <p style="margin-top:10px;">La solución es aplicar el patrón de <strong>lifting state up</strong> que ya conoces — subir el estado del nombre a <code>App.jsx</code> para que tanto <code>Home</code> como <code>Navbar</code> compartan la misma fuente de verdad.</p>
+
+      <div class="spoiler" style="margin-top:12px;">
+        <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Ver los cambios necesarios</button>
+        <div class="spoiler-content">
+
+          <div class="note note-info" style="margin-bottom:12px;">
+            El estado del nombre sube a <code>App.jsx</code> — que es el padre común de <code>Navbar</code> y <code>Home</code>. <code>Home</code> recibe una función <code>onGuardar</code> para notificar el cambio, y <code>Navbar</code> recibe el nombre como prop en lugar de leerlo del localStorage.
+          </div>
+
+          <div class="code-label">App.jsx — agrega el estado y pásalo a los componentes</div>
+          <pre><code>import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home     from './pages/Home';
+import Usuarios from './pages/Usuarios';
+import Detalle  from './pages/Detalle';
+import Navbar   from './components/Navbar';
+
+function App() {
+  const [nombre, setNombre] = useState(
+    localStorage.getItem('nombreUsuario') || ''
+  );
+
+  return (
+    &lt;BrowserRouter&gt;
+      &lt;Navbar nombre={nombre} /&gt;
+      &lt;div className="max-w-2xl mx-auto px-5 py-8"&gt;
+        &lt;Routes&gt;
+          &lt;Route path="/"             element={&lt;Home onGuardar={setNombre} /&gt;} /&gt;
+          &lt;Route path="/usuarios"     element={&lt;Usuarios /&gt;} /&gt;
+          &lt;Route path="/usuarios/:id" element={&lt;Detalle /&gt;}  /&gt;
+        &lt;/Routes&gt;
+      &lt;/div&gt;
+    &lt;/BrowserRouter&gt;
+  );
+}
+
+export default App;</code></pre>
+
+          <div class="code-label">Navbar.jsx — recibe nombre como prop, ya no lee localStorage</div>
+          <pre><code>import { Link } from 'react-router-dom';
+
+function Navbar({ nombre }) {
+  return (
+    &lt;nav className="bg-indigo-700 text-white px-6 py-3 flex items-center gap-6"&gt;
+      &lt;span className="font-semibold text-base"&gt;MiApp&lt;/span&gt;
+      &lt;div className="flex gap-4 flex-1"&gt;
+        &lt;Link to="/" className="text-white/80 hover:text-white text-sm"&gt;Inicio&lt;/Link&gt;
+        &lt;Link to="/usuarios" className="text-white/80 hover:text-white text-sm"&gt;Usuarios&lt;/Link&gt;
+      &lt;/div&gt;
+      {nombre &amp;&amp; (
+        &lt;span className="text-white/60 text-xs italic"&gt;Hola, {nombre}&lt;/span&gt;
+      )}
+    &lt;/nav&gt;
+  );
+}
+
+export default Navbar;</code></pre>
+
+          <div class="code-label">Home.jsx — recibe onGuardar como prop y lo llama al guardar</div>
+          <pre><code>import { useState } from 'react';
+
+function Home({ onGuardar }) {
+  const [nombre, setNombre] = useState(
+    localStorage.getItem('nombreUsuario') || ''
+  );
+
+  function guardarNombre() {
+    localStorage.setItem('nombreUsuario', nombre);
+    onGuardar(nombre);  // notifica a App del cambio → App re-renderiza → Navbar se actualiza
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;h2 className="text-2xl font-semibold mb-2"&gt;Bienvenido&lt;/h2&gt;
+      &lt;p className="text-gray-500 text-sm mb-4"&gt;Escribe tu nombre para personalizar la app.&lt;/p&gt;
+      &lt;div className="flex gap-3"&gt;
+        &lt;input
+          type="text"
+          placeholder="Tu nombre"
+          value={nombre}
+          onChange={(e) =&gt; setNombre(e.target.value)}
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        /&gt;
+        &lt;button
+          onClick={guardarNombre}
+          className="bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm"
+        &gt;
+          Guardar
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default Home;</code></pre>
+
+          <div class="note note-green">
+            Ahora cuando el usuario guarda su nombre: Home llama a <code>onGuardar(nombre)</code> → App actualiza su estado con <code>setNombre</code> → React re-renderiza App → Navbar recibe el nombre nuevo como prop → el saludo aparece inmediatamente sin recargar.
+          </div>
+
+      <div style="margin-top:16px;">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Escribe un nombre y haz clic en <strong>Guardar</strong> para ver cómo viaja el dato entre los componentes:</p>
+
+        <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+          <style>
+            .lsu-wrap{padding:1.2rem;font-family:var(--sans)}
+            .lsu-layout{display:grid;grid-template-columns:1fr 64px 1fr;gap:0;align-items:stretch}
+            .lsu-comp{border-radius:8px;border:2px solid;padding:11px 12px;position:relative}
+            .lsu-comp-tag{position:absolute;top:-1px;left:10px;font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 8px;border-radius:0 0 6px 6px;border:1px solid;border-top:none}
+            .lsu-body{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.55}
+            .lsu-body code{font-family:var(--mono);font-size:11px;background:#f1f0ec;border:1px solid var(--border);border-radius:3px;padding:1px 4px;color:var(--text)}
+            .lsu-c-home{background:#E1F5EE22;border-color:#5DCAA5}
+            .lsu-c-home .lsu-comp-tag{background:#E1F5EE;border-color:#5DCAA5;color:#085041}
+            .lsu-c-app{background:#EEEDFE22;border-color:#AFA9EC}
+            .lsu-c-app .lsu-comp-tag{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489}
+            .lsu-c-nav{background:#FAEEDA22;border-color:#EF9F27}
+            .lsu-c-nav .lsu-comp-tag{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+            .lsu-inp{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;margin:8px 0;background:var(--surface);color:var(--text)}
+            .lsu-btn{width:100%;padding:7px;background:#085041;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer}
+            .lsu-btn:hover{opacity:.85}
+            .lsu-app-val{font-family:var(--mono);font-size:11px;color:#3C3489;font-weight:600;margin-top:4px;text-align:center;transition:color .3s}
+            .lsu-nb{background:#4338ca;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:10px;margin-top:8px}
+            .lsu-nb-brand{font-size:11px;font-weight:600;color:#fff}
+            .lsu-nb-links{display:flex;gap:10px;flex:1}
+            .lsu-nb-link{font-size:10px;color:rgba(255,255,255,.6)}
+            .lsu-nb-saludo{font-size:10px;color:rgba(255,255,255,.35);font-style:italic;transition:all .5s;min-width:60px;text-align:right}
+            .lsu-nb-saludo.on{color:#fff;font-style:normal;font-weight:600}
+            .lsu-arrow-col{display:flex;flex-direction:column;align-items:center}
+            .lsu-line{width:2px;flex:1;min-height:16px;background:var(--border);transition:background .4s}
+            .lsu-line.up{background:#085041}
+            .lsu-line.dn{background:#3C3489}
+            .lsu-ah-up{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--border);transition:border-color .4s}
+            .lsu-ah-up.on{border-bottom-color:#085041}
+            .lsu-ah-dn{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--border);transition:border-color .4s}
+            .lsu-ah-dn.on{border-top-color:#3C3489}
+            .lsu-chip{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:99px;text-align:center;opacity:.4;transition:opacity .4s,transform .3s;margin:3px 0;white-space:nowrap}
+            .lsu-chip.lit{opacity:1;transform:scale(1.08)}
+            .lsu-chip-up{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+            .lsu-chip-dn{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+            .lsu-vspace{height:10px}
+            .lsu-log{margin-top:12px;display:flex;flex-direction:column;gap:4px;min-height:56px}
+            .lsu-log-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--muted);animation:lsuFade .3s ease;line-height:1.5}
+            @keyframes lsuFade{from{opacity:0;transform:translateY(3px)}to{opacity:1}}
+            .lsu-log-num{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0;margin-top:1px}
+            .lsu-reset{font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;margin-top:8px}
+            .lsu-pulse{box-shadow:0 0 0 3px rgba(83,74,183,.2)}
+          </style>
+
+          <div class="lsu-wrap">
+            <div class="lsu-layout">
+
+              <!-- Izquierda: Home arriba, Navbar abajo -->
+              <div style="display:flex;flex-direction:column;gap:0;">
+                <div class="lsu-comp lsu-c-home" id="lsu-home">
+                  <div class="lsu-comp-tag">Home.jsx</div>
+                  <div class="lsu-body">Recibe <code>onGuardar</code> como prop. Al guardar, llama <code>onGuardar(nombre)</code>.</div>
+                  <input class="lsu-inp" type="text" id="lsu-inp" placeholder="Escribe tu nombre..." />
+                  <button class="lsu-btn" onclick="lsuGuardar()">Guardar — llamar onGuardar()</button>
+                </div>
+                <div class="lsu-vspace"></div>
+                <div class="lsu-comp lsu-c-nav" id="lsu-nav">
+                  <div class="lsu-comp-tag">Navbar.jsx</div>
+                  <div class="lsu-body">Recibe <code>nombre</code> como prop. Se actualiza automáticamente.</div>
+                  <div class="lsu-nb">
+                    <span class="lsu-nb-brand">MiApp</span>
+                    <div class="lsu-nb-links"><span class="lsu-nb-link">Inicio</span><span class="lsu-nb-link">Usuarios</span></div>
+                    <span class="lsu-nb-saludo" id="lsu-saludo">sin nombre</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Centro: flechas y App.jsx -->
+              <div class="lsu-arrow-col">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding-top:36px;">
+                  <div class="lsu-chip lsu-chip-up" id="lsu-cup">onGuardar()<br>↑ sube</div>
+                  <div class="lsu-ah-up" id="lsu-ahup"></div>
+                  <div class="lsu-line" id="lsu-lup" style="flex:1"></div>
+                </div>
+                <div class="lsu-comp lsu-c-app" id="lsu-app" style="padding:8px 6px;text-align:center;min-width:0;">
+                  <div class="lsu-comp-tag" style="left:50%;transform:translateX(-50%);white-space:nowrap;">App.jsx</div>
+                  <div style="margin-top:12px;font-size:10px;font-family:var(--mono);color:#3C3489;">nombre =</div>
+                  <div class="lsu-app-val" id="lsu-appval">''</div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding-bottom:36px;">
+                  <div class="lsu-line" id="lsu-ldn" style="flex:1"></div>
+                  <div class="lsu-ah-dn" id="lsu-ahdn"></div>
+                  <div class="lsu-chip lsu-chip-dn" id="lsu-cdn">nombre<br>↓ baja</div>
+                </div>
+              </div>
+
+              <!-- Derecha: explicación -->
+              <div style="display:flex;flex-direction:column;justify-content:center;padding-left:10px;padding-top:24px;">
+                <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+                  <p>1. Home llama <code style="font-family:var(--mono);font-size:11px;background:#f1f0ec;border:1px solid var(--border);border-radius:3px;padding:1px 4px;">onGuardar()</code></p>
+                  <p style="margin-top:6px;">2. App ejecuta <code style="font-family:var(--mono);font-size:11px;background:#f1f0ec;border:1px solid var(--border);border-radius:3px;padding:1px 4px;">setNombre()</code></p>
+                  <p style="margin-top:6px;">3. React re-renderiza</p>
+                  <p style="margin-top:6px;">4. Navbar recibe <code style="font-family:var(--mono);font-size:11px;background:#f1f0ec;border:1px solid var(--border);border-radius:3px;padding:1px 4px;">nombre</code> actualizado</p>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="lsu-log" id="lsu-log"></div>
+            <button class="lsu-reset" onclick="lsuReset()">↺ Reiniciar</button>
+          </div>
+
+          <script>
+          function lsuLog(num, text, color) {
+            const area = document.getElementById('lsu-log');
+            const el = document.createElement('div');
+            el.className = 'lsu-log-item';
+            el.innerHTML = '<div class="lsu-log-num" style="background:'+color+'">'+num+'</div><span>'+text+'</span>';
+            area.appendChild(el);
+          }
+          function lsuFlash(lineId, cls, arrowId, arrowCls, chipId) {
+            const l = document.getElementById(lineId);
+            const a = document.getElementById(arrowId);
+            const c = document.getElementById(chipId);
+            l.classList.add(cls); a.classList.add('on'); c.classList.add('lit');
+            setTimeout(() => { l.classList.remove(cls); a.classList.remove('on'); c.classList.remove('lit'); }, 1400);
+          }
+          function lsuPulse(id) {
+            const el = document.getElementById(id);
+            el.classList.add('lsu-pulse');
+            setTimeout(() => el.classList.remove('lsu-pulse'), 900);
+          }
+          function lsuGuardar() {
+            const nombre = document.getElementById('lsu-inp').value.trim();
+            if (!nombre) return;
+            document.getElementById('lsu-log').innerHTML = '';
+            setTimeout(() => { lsuLog(1, 'Home llama onGuardar("'+nombre+'") — sube hacia App', '#085041'); lsuFlash('lsu-lup','up','lsu-ahup','on','lsu-cup'); lsuPulse('lsu-home'); }, 0);
+            setTimeout(() => { lsuLog(2, 'App recibe el nombre → setNombre("'+nombre+'") → re-render', '#3C3489'); document.getElementById('lsu-appval').textContent = '"'+nombre+'"'; lsuPulse('lsu-app'); }, 900);
+            setTimeout(() => { lsuLog(3, 'App pasa nombre="'+nombre+'" como prop → baja hacia Navbar', '#633806'); lsuFlash('lsu-ldn','dn','lsu-ahdn','on','lsu-cdn'); }, 1700);
+            setTimeout(() => { lsuLog(4, 'Navbar se actualiza — sin recargar la página', '#633806'); const s = document.getElementById('lsu-saludo'); s.textContent='Hola, '+nombre; s.classList.add('on'); lsuPulse('lsu-nav'); }, 2500);
+          }
+          function lsuReset() {
+            document.getElementById('lsu-inp').value='';
+            document.getElementById('lsu-appval').textContent="''";
+            const s = document.getElementById('lsu-saludo'); s.textContent='sin nombre'; s.classList.remove('on');
+            document.getElementById('lsu-log').innerHTML='';
+          }
+          </script>
+        </div>
+      </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reto extra -->
+  <div class="section-label">🎯 Reto extra</div>
+  <div class="challenge">
+    <div class="challenge-title">Página 404 para rutas desconocidas</div>
+    <p>Agrega una ruta comodín que capture cualquier URL que no coincida con las rutas definidas y muestre una página de error amigable con un botón para volver al inicio.</p>
+    <div class="spoiler" style="margin-top: 12px;">
+      <button class="btn-show" onclick="toggle(this)"><span class="arrow">▶</span> Mostrar solución</button>
+      <div class="spoiler-content">
+        <div class="code-label">src/pages/NotFound.jsx</div>
+        <pre><code>import { Link } from 'react-router-dom';
+
+function NotFound() {
+  return (
+    &lt;div className="pagina"&gt;
+      &lt;h2&gt;404 — Página no encontrada&lt;/h2&gt;
+      &lt;p&gt;La ruta que buscas no existe.&lt;/p&gt;
+      &lt;Link to="/"&gt;← Volver al inicio&lt;/Link&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default NotFound;</code></pre>
+        <div class="code-label">App.jsx — agregar la ruta al final de Routes</div>
+        <pre><code>import NotFound from './pages/NotFound';
+
+// Dentro de &lt;Routes&gt;, al final:
+&lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;</code></pre>
+        <div class="note note-green">
+          <code>path="*"</code> es el comodín — captura cualquier URL que no haya coincidido con las rutas anteriores. React Router siempre evalúa las rutas en orden, así que el comodín solo se activa si ninguna otra ruta coincidió.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preguntas -->
+  <div class="section-label">❓ Preguntas para reflexionar</div>
+  <ul class="questions">
+    <li class="question">
+      <div class="q-num">1</div>
+      <div class="q-text">¿Qué diferencia hay entre <code>Link</code> de React Router y una etiqueta <code>&lt;a&gt;</code> de HTML normal?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">2</div>
+      <div class="q-text">¿Por qué <code>BrowserRouter</code> debe envolver toda la app y no solo las rutas?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">3</div>
+      <div class="q-text">¿Por qué en <code>Detalle.jsx</code> convertimos el <code>id</code> a número con <code>Number(id)</code>?</div>
+    </li>
+    <li class="question">
+      <div class="q-num">4</div>
+      <div class="q-text">¿Qué diferencia hay entre guardar datos en <code>localStorage</code> vs guardarlos en <code>useState</code>?</div>
+    </li>
+  </ul>
+
+</div>
+
+<script>
+  function showDiagram(id, tabBtn) {
+    document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
+  }
+  function toggle(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.toggle('visible');
+    btn.classList.toggle('open', isOpen);
+    const label = btn.querySelector('.arrow').nextSibling.textContent.replace(/^\s*(Mostrar|Ocultar)\s+/, '').trim();
+    btn.querySelector('.arrow').nextSibling.textContent = ' ' + (isOpen ? 'Ocultar ' : 'Mostrar ') + label;
+  }
+</script>
+</body>
+</html>
