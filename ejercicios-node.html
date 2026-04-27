@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tareas React</title>
+  <title>Ejercicios Node.js</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,7 +33,6 @@
       flex-direction: column;
     }
 
-    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1.5px solid var(--border);
@@ -67,7 +66,6 @@
       color: var(--muted);
     }
 
-    /* ── Main ── */
     main {
       max-width: 800px;
       width: 100%;
@@ -93,11 +91,7 @@
       height: 1px;
       background: var(--border-soft);
     }
-    .cards + .grid-label {
-      margin-top: 40px;
-    }
 
-    /* ── Cards ── */
     .cards { display: flex; flex-direction: column; gap: 12px; }
 
     .card {
@@ -174,7 +168,6 @@
       transform: translateX(3px);
     }
 
-    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 24px;
@@ -188,74 +181,52 @@
 
   <header>
     <a href="index.html" class="home-link">← Índice principal</a>
-    <div class="header-eyebrow">Curso de React - TC2005B.501</div>
-    <h1>Tareas</h1>
-    <p>Selecciona una tarea para comenzar.</p>
+    <div class="header-eyebrow">Curso TC2005B.501</div>
+    <h1>Ejercicios Node.js</h1>
+    <p>Selecciona un ejercicio para practicar backend con Node.js y Express.</p>
   </header>
 
   <main>
-    <div class="grid-label">Semana 03 - React</div>
+    <div class="grid-label">Semana 5 - Node.js - Express</div>
     <div class="cards">
 
-      <a href="tarea-agenda.html" class="card">
+      <a href="ejemplo-node1.html" class="card">
         <div class="card-num">01</div>
         <div class="card-body">
-          <div class="card-title">Agenda de Contactos</div>
-          <div class="card-desc">Tarea integradora: agenda en React con formulario, lista de contactos, eliminar y contador; estado en App.jsx y componentes separados.</div>
+          <div class="card-title">API REST con Express</div>
+          <div class="card-desc">Crea rutas CRUD para usuarios usando un arreglo como fuente de datos temporal.</div>
           <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">Vite</span>
-            <span class="tag">TailwindCSS</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
+            <span class="tag">Node.js</span>
+            <span class="tag">Express</span>
+            <span class="tag">API REST</span>
+            <span class="tag">CRUD</span>
+            <span class="tag-gray tag">45-50 min</span>
           </div>
         </div>
-        <div class="card-arrow">→</div>
+        <div class="card-arrow">&rarr;</div>
       </a>
 
-      <a href="tarea-tarjeta.html" class="card">
+      <a href="ejercicios-node-express-sequelize.html" class="card">
         <div class="card-num">02</div>
         <div class="card-body">
-          <div class="card-title">Generador de Tarjeta de Presentación</div>
-          <div class="card-desc">Tarea integradora: formulario con nombre y lenguaje favorito, tarjeta generada con estado condicional, botón limpiar y validación; todo en App.jsx.</div>
+          <div class="card-title">API REST con Express, Sequelize y Neon</div>
+          <div class="card-desc">Migra la API anterior para guardar usuarios en una base de datos PostgreSQL real.</div>
           <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">Vite</span>
-            <span class="tag">CSS</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
+            <span class="tag">Node.js</span>
+            <span class="tag">Express</span>
+            <span class="tag">Sequelize</span>
+            <span class="tag">Neon</span>
+            <span class="tag-gray tag">60-75 min</span>
           </div>
         </div>
-        <div class="card-arrow">→</div>
-      </a>
-
-    </div>
-
-    <div class="grid-label">Tareas Semana 04</div>
-    <div class="cards">
-
-      <a href="tarea-usuarios.html" class="card">
-        <div class="card-num">03</div>
-        <div class="card-body">
-          <div class="card-title">Buscador de Usuarios</div>
-          <div class="card-desc">Tarea integradora: app con React Router, Home con búsqueda por ID, detalle con fetch a JSONPlaceholder (useParams, useEffect), Navbar y estados de carga y error.</div>
-          <div class="card-tags">
-            <span class="tag">React Router</span>
-            <span class="tag">useEffect</span>
-            <span class="tag">fetch</span>
-            <span class="tag">useParams</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
-          </div>
-        </div>
-        <div class="card-arrow">→</div>
+        <div class="card-arrow">&rarr;</div>
       </a>
 
     </div>
   </main>
 
   <footer>
-    Tareas de React · Uso interno
+    Ejercicios de Node.js y Express · Uso interno
   </footer>
 
 </body>

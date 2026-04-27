@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejemplo Node 1 - API REST con Express</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --delete: #dc2626;
+      --post: #0891b2;
+      --put: #d97706;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 760px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .tag-time {
+      background: #f3f4f6;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-family: var(--mono);
+    }
+    .step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .step-body {
+      padding: 0 16px 14px 54px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f0ec;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--text);
+    }
+    pre {
+      background: #1e1d1b;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+    pre code {
+      font-size: 12.5px;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #d4d0c8;
+      line-height: 1.65;
+    }
+    .code-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin: 10px 0 3px;
+    }
+
+    .note {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: var(--warn-text);
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .note-info {
+      background: var(--accent-bg);
+      border-color: var(--accent-border);
+      color: #3730a3;
+    }
+    .note-green {
+      background: var(--green-bg);
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .routes-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .route-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 1.35fr;
+      border-bottom: 1px solid var(--border-soft);
+      min-height: 56px;
+    }
+    .route-row:last-child { border-bottom: none; }
+    .method {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .method.get { background: var(--green); }
+    .method.post { background: var(--post); }
+    .method.put { background: var(--put); }
+    .method.delete { background: var(--delete); }
+    .path,
+    .route-desc {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    .path {
+      font-family: var(--mono);
+      color: var(--text);
+      background: #fbfaf7;
+    }
+    .route-desc { color: var(--muted); }
+
+    .challenge {
+      background: var(--green-bg);
+      border: 1px solid #bbf7d0;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-top: 4px;
+    }
+    .challenge-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+    .challenge p {
+      font-size: 13px;
+      color: #166534;
+    }
+
+    @media (max-width: 640px) {
+      .route-row { grid-template-columns: 86px 1fr; }
+      .route-desc {
+        grid-column: 1 / -1;
+        border-top: 1px solid var(--border-soft);
+      }
+      .step-body { padding-left: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="ejercicios-node.html" class="back-link">&larr; Volver a ejercicios Node.js</a>
+
+  <div class="header">
+    <div class="header-eyebrow">Ejemplo Node 1</div>
+    <h1>API REST con Express</h1>
+    <div class="header-meta">
+      <span class="tag">Node.js</span>
+      <span class="tag">Express</span>
+      <span class="tag">ES Modules</span>
+      <span class="tag">REST</span>
+      <span class="tag">CRUD</span>
+      <span class="tag">JSON</span>
+      <span class="tag tag-time">45-50 min</span>
+    </div>
+  </div>
+
+  <div class="section-label">Objetivo</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">00</div>
+      <div class="step-title">Construir una API REST de usuarios</div>
+    </div>
+    <div class="step-body">
+      <p>En este ejercicio crearás un servidor con Express que expone rutas HTTP para administrar usuarios.</p>
+      <p>Como todavía no hay base de datos, los registros vivirán en un arreglo dentro del archivo <code>server.js</code>. Al reiniciar el servidor, los cambios se perderán.</p>
+      <div class="note note-info">Una API REST expone recursos a través de rutas HTTP. Cada método representa una operación CRUD sobre los datos.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Rutas que debe tener la API</div>
+  <div class="routes-card">
+    <div class="route-row">
+      <div class="method get">GET</div>
+      <div class="path">/usuarios</div>
+      <div class="route-desc">Obtener lista de usuarios</div>
+    </div>
+    <div class="route-row">
+      <div class="method get">GET</div>
+      <div class="path">/usuarios/:id</div>
+      <div class="route-desc">Obtener un usuario específico</div>
+    </div>
+    <div class="route-row">
+      <div class="method post">POST</div>
+      <div class="path">/usuarios</div>
+      <div class="route-desc">Crear un nuevo usuario</div>
+    </div>
+    <div class="route-row">
+      <div class="method put">PUT</div>
+      <div class="path">/usuarios/:id</div>
+      <div class="route-desc">Actualizar un usuario</div>
+    </div>
+    <div class="route-row">
+      <div class="method delete">DELETE</div>
+      <div class="path">/usuarios/:id</div>
+      <div class="route-desc">Eliminar un usuario</div>
+    </div>
+  </div>
+
+  <div class="section-label">Preparación del proyecto</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">01</div>
+      <div class="step-title">Crear carpeta e inicializar Node.js</div>
+    </div>
+    <div class="step-body">
+      <p>Abre una terminal y crea un proyecto nuevo para la API.</p>
+      <div class="code-label">Terminal</div>
+      <pre><code>mkdir api-usuarios
+cd api-usuarios
+npm init -y</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">02</div>
+      <div class="step-title">Instalar Express</div>
+    </div>
+    <div class="step-body">
+      <p>Express nos permite crear rutas HTTP de forma sencilla.</p>
+      <div class="code-label">Terminal</div>
+      <pre><code>npm install express</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">03</div>
+      <div class="step-title">Configurar módulos y script de inicio</div>
+    </div>
+    <div class="step-body">
+      <p>Abre <code>package.json</code>, agrega <code>"type": "module"</code> y cambia la sección <code>scripts</code>.</p>
+      <p>Con esta configuración podrás importar librerías usando <code>import</code> en lugar de <code>require</code>.</p>
+      <div class="code-label">package.json</div>
+      <pre><code>{
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="section-label">Código base</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">04</div>
+      <div class="step-title">Crear el archivo server.js</div>
+    </div>
+    <div class="step-body">
+      <p>Crea un archivo llamado <code>server.js</code> y agrega el servidor básico con un arreglo de usuarios.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>import express from 'express';
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+let usuarios = [
+  { id: 1, nombre: 'Ana', correo: 'ana@tec.mx' },
+  { id: 2, nombre: 'Luis', correo: 'luis@tec.mx' },
+  { id: 3, nombre: 'Marta', correo: 'marta@tec.mx' }
+];
+
+app.get('/', (req, res) =&gt; {
+  res.json({ mensaje: 'API REST de usuarios con Express' });
+});
+
+app.listen(PORT, () =&gt; {
+  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+});</code></pre>
+      <div class="note">La línea <code>import express from 'express'</code> funciona porque agregaste <code>"type": "module"</code> en <code>package.json</code>. El middleware <code>express.json()</code> permite leer datos JSON enviados en el cuerpo de las peticiones <code>POST</code> y <code>PUT</code>.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Implementación de rutas CRUD</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">05</div>
+      <div class="step-title">GET /usuarios - listar usuarios</div>
+    </div>
+    <div class="step-body">
+      <p>Devuelve el arreglo completo de usuarios.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>app.get('/usuarios', (req, res) =&gt; {
+  res.json(usuarios);
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">06</div>
+      <div class="step-title">GET /usuarios/:id - buscar por id</div>
+    </div>
+    <div class="step-body">
+      <p>Recibe el <code>id</code> desde la URL y busca un usuario dentro del arreglo.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>app.get('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const usuario = usuarios.find((item) =&gt; item.id === id);
+
+  if (!usuario) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  res.json(usuario);
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">07</div>
+      <div class="step-title">POST /usuarios - crear usuario</div>
+    </div>
+    <div class="step-body">
+      <p>Lee <code>nombre</code> y <code>correo</code> desde el cuerpo de la petición y agrega un nuevo objeto al arreglo.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>app.post('/usuarios', (req, res) =&gt; {
+  const { nombre, correo } = req.body;
+
+  if (!nombre || !correo) {
+    return res.status(400).json({ mensaje: 'Nombre y correo son obligatorios' });
+  }
+
+  const nuevoUsuario = {
+    id: usuarios.length + 1,
+    nombre,
+    correo
+  };
+
+  usuarios.push(nuevoUsuario);
+  res.status(201).json(nuevoUsuario);
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">08</div>
+      <div class="step-title">PUT /usuarios/:id - actualizar usuario</div>
+    </div>
+    <div class="step-body">
+      <p>Actualiza los datos de un usuario existente. Si un campo no viene en la petición, conserva su valor anterior.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>app.put('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const usuario = usuarios.find((item) =&gt; item.id === id);
+
+  if (!usuario) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  const { nombre, correo } = req.body;
+
+  usuario.nombre = nombre || usuario.nombre;
+  usuario.correo = correo || usuario.correo;
+
+  res.json(usuario);
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">09</div>
+      <div class="step-title">DELETE /usuarios/:id - eliminar usuario</div>
+    </div>
+    <div class="step-body">
+      <p>Elimina un usuario del arreglo usando su <code>id</code>.</p>
+      <div class="code-label">server.js</div>
+      <pre><code>app.delete('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const existe = usuarios.some((item) =&gt; item.id === id);
+
+  if (!existe) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  usuarios = usuarios.filter((item) =&gt; item.id !== id);
+  res.json({ mensaje: 'Usuario eliminado correctamente' });
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="section-label">Archivo completo</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">10</div>
+      <div class="step-title">Código final de server.js</div>
+    </div>
+    <div class="step-body">
+      <p>Tu archivo completo debe quedar así:</p>
+      <div class="code-label">server.js</div>
+      <pre><code>import express from 'express';
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+let usuarios = [
+  { id: 1, nombre: 'Ana', correo: 'ana@tec.mx' },
+  { id: 2, nombre: 'Luis', correo: 'luis@tec.mx' },
+  { id: 3, nombre: 'Marta', correo: 'marta@tec.mx' }
+];
+
+app.get('/', (req, res) =&gt; {
+  res.json({ mensaje: 'API REST de usuarios con Express' });
+});
+
+app.get('/usuarios', (req, res) =&gt; {
+  res.json(usuarios);
+});
+
+app.get('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const usuario = usuarios.find((item) =&gt; item.id === id);
+
+  if (!usuario) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  res.json(usuario);
+});
+
+app.post('/usuarios', (req, res) =&gt; {
+  const { nombre, correo } = req.body;
+
+  if (!nombre || !correo) {
+    return res.status(400).json({ mensaje: 'Nombre y correo son obligatorios' });
+  }
+
+  const nuevoUsuario = {
+    id: usuarios.length + 1,
+    nombre,
+    correo
+  };
+
+  usuarios.push(nuevoUsuario);
+  res.status(201).json(nuevoUsuario);
+});
+
+app.put('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const usuario = usuarios.find((item) =&gt; item.id === id);
+
+  if (!usuario) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  const { nombre, correo } = req.body;
+
+  usuario.nombre = nombre || usuario.nombre;
+  usuario.correo = correo || usuario.correo;
+
+  res.json(usuario);
+});
+
+app.delete('/usuarios/:id', (req, res) =&gt; {
+  const id = Number(req.params.id);
+  const existe = usuarios.some((item) =&gt; item.id === id);
+
+  if (!existe) {
+    return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  }
+
+  usuarios = usuarios.filter((item) =&gt; item.id !== id);
+  res.json({ mensaje: 'Usuario eliminado correctamente' });
+});
+
+app.listen(PORT, () =&gt; {
+  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="section-label">Probar la API</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">11</div>
+      <div class="step-title">Ejecutar el servidor</div>
+    </div>
+    <div class="step-body">
+      <p>Inicia el proyecto con el script configurado.</p>
+      <div class="code-label">Terminal</div>
+      <pre><code>npm start</code></pre>
+      <p>Después abre <code>http://localhost:3000/usuarios</code> en el navegador para ver la lista inicial.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">12</div>
+      <div class="step-title">Enviar peticiones con Thunder Client, Postman o curl</div>
+    </div>
+    <div class="step-body">
+      <p>Prueba cada ruta. Para <code>POST</code> y <code>PUT</code>, envía el cuerpo en formato JSON.</p>
+      <div class="code-label">POST /usuarios</div>
+      <pre><code>{
+  "nombre": "Carlos",
+  "correo": "carlos@tec.mx"
+}</code></pre>
+      <div class="code-label">PUT /usuarios/1</div>
+      <pre><code>{
+  "nombre": "Ana Sofia",
+  "correo": "ana.sofia@tec.mx"
+}</code></pre>
+      <div class="note note-green">Si todo funciona, podrás listar, consultar, crear, actualizar y eliminar usuarios aunque todavía no tengas una base de datos.</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

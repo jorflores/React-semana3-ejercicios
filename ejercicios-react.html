@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tareas React</title>
+  <title>Ejercicios React - Semanas 3 y 4</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,7 +33,6 @@
       flex-direction: column;
     }
 
-    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1.5px solid var(--border);
@@ -67,7 +66,6 @@
       color: var(--muted);
     }
 
-    /* ── Main ── */
     main {
       max-width: 800px;
       width: 100%;
@@ -93,11 +91,10 @@
       height: 1px;
       background: var(--border-soft);
     }
-    .cards + .grid-label {
-      margin-top: 40px;
+    .grid-label.section-break {
+      margin-top: 36px;
     }
 
-    /* ── Cards ── */
     .cards { display: flex; flex-direction: column; gap: 12px; }
 
     .card {
@@ -174,7 +171,6 @@
       transform: translateX(3px);
     }
 
-    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 24px;
@@ -189,41 +185,58 @@
   <header>
     <a href="index.html" class="home-link">← Índice principal</a>
     <div class="header-eyebrow">Curso de React - TC2005B.501</div>
-    <h1>Tareas</h1>
-    <p>Selecciona una tarea para comenzar.</p>
+    <h1>Ejercicios React</h1>
+    <p>Selecciona un ejercicio de las semanas 3 y 4 para comenzar.</p>
   </header>
 
   <main>
     <div class="grid-label">Semana 03 - React</div>
     <div class="cards">
 
-      <a href="tarea-agenda.html" class="card">
+      <a href="ejemplo1.html" class="card">
         <div class="card-num">01</div>
         <div class="card-body">
-          <div class="card-title">Agenda de Contactos</div>
-          <div class="card-desc">Tarea integradora: agenda en React con formulario, lista de contactos, eliminar y contador; estado en App.jsx y componentes separados.</div>
+          <div class="card-title">🔢 Contador Interactivo</div>
+          <div class="card-desc">Construye un contador con botones de suma, resta y reset.</div>
           <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">Vite</span>
-            <span class="tag">TailwindCSS</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
+            <span class="tag">useState</span>
+            <span class="tag">eventos</span>
+            <span class="tag">re-render</span>
+            <span class="tag">className</span>
+            <span class="tag-gray tag">⏱ 35–40 min</span>
           </div>
         </div>
         <div class="card-arrow">→</div>
       </a>
 
-      <a href="tarea-tarjeta.html" class="card">
+      <a href="ejemplo2.html" class="card">
         <div class="card-num">02</div>
         <div class="card-body">
-          <div class="card-title">Generador de Tarjeta de Presentación</div>
-          <div class="card-desc">Tarea integradora: formulario con nombre y lenguaje favorito, tarjeta generada con estado condicional, botón limpiar y validación; todo en App.jsx.</div>
+          <div class="card-title">🧩 Tarjetas de Alumnos</div>
+          <div class="card-desc">Renderiza una lista de alumnos usando props y map().</div>
           <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">Vite</span>
-            <span class="tag">CSS</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
+            <span class="tag">props</span>
+            <span class="tag">map()</span>
+            <span class="tag">key</span>
+            <span class="tag">spread operator</span>
+            <span class="tag-gray tag">⏱ 25–30 min</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejemplo3.html" class="card">
+        <div class="card-num">03</div>
+        <div class="card-body">
+          <div class="card-title">✅ Lista de tareas (To-do)</div>
+          <div class="card-desc">Estado en el padre, formularios controlados y Tailwind para armar una lista interactiva.</div>
+          <div class="card-tags">
+            <span class="tag">useState</span>
+            <span class="tag">arrays</span>
+            <span class="tag">props</span>
+            <span class="tag">map()</span>
+            <span class="tag">TailwindCSS</span>
+            <span class="tag-gray tag">⏱ 35–40 min</span>
           </div>
         </div>
         <div class="card-arrow">→</div>
@@ -231,21 +244,52 @@
 
     </div>
 
-    <div class="grid-label">Tareas Semana 04</div>
+    <div class="grid-label section-break">Semana 04 - Efectos, datos remotos y rutas</div>
     <div class="cards">
 
-      <a href="tarea-usuarios.html" class="card">
-        <div class="card-num">03</div>
+      <a href="ejemplo4.html" class="card">
+        <div class="card-num">04</div>
         <div class="card-body">
-          <div class="card-title">Buscador de Usuarios</div>
-          <div class="card-desc">Tarea integradora: app con React Router, Home con búsqueda por ID, detalle con fetch a JSONPlaceholder (useParams, useEffect), Navbar y estados de carga y error.</div>
+          <div class="card-title">🕐 Reloj en Tiempo Real</div>
+          <div class="card-desc">Intervalo con useEffect, cleanup con clearInterval y array de dependencias.</div>
           <div class="card-tags">
-            <span class="tag">React Router</span>
+            <span class="tag">useEffect</span>
+            <span class="tag">useState</span>
+            <span class="tag">setInterval</span>
+            <span class="tag">cleanup</span>
+            <span class="tag-gray tag">⏱ 20–25 min</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejemplo5.html" class="card">
+        <div class="card-num">05</div>
+        <div class="card-body">
+          <div class="card-title">🔍 Buscador de Usuarios de GitHub</div>
+          <div class="card-desc">fetch con useEffect, API REST de GitHub, estados de carga y error.</div>
+          <div class="card-tags">
             <span class="tag">useEffect</span>
             <span class="tag">fetch</span>
+            <span class="tag">useState</span>
+            <span class="tag">API REST</span>
+            <span class="tag-gray tag">⏱ 25–30 min</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejemplo6.html" class="card">
+        <div class="card-num">06</div>
+        <div class="card-body">
+          <div class="card-title">🗺️ React Router + localStorage</div>
+          <div class="card-desc">Rutas con BrowserRouter, Link, useParams y persistencia en el navegador.</div>
+          <div class="card-tags">
+            <span class="tag">react-router-dom</span>
+            <span class="tag">Link</span>
             <span class="tag">useParams</span>
-            <span class="tag-gray tag">Individual</span>
-            <span class="tag-gray tag">⏱ 1 semana</span>
+            <span class="tag">localStorage</span>
+            <span class="tag-gray tag">⏱ 30–35 min</span>
           </div>
         </div>
         <div class="card-arrow">→</div>
@@ -255,7 +299,7 @@
   </main>
 
   <footer>
-    Tareas de React · Uso interno
+    Ejercicios de React · Uso interno
   </footer>
 
 </body>
