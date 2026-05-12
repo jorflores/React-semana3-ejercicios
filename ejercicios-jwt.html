@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Índice TC2005B</title>
+  <title>Ejercicios JWT y Autenticación - Semana 6</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,12 +33,20 @@
       flex-direction: column;
     }
 
-    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1.5px solid var(--border);
       padding: 28px 40px 24px;
     }
+    .home-link {
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 16px;
+    }
+    .home-link:hover { color: var(--accent); }
     .header-eyebrow {
       font-size: 11px;
       font-weight: 600;
@@ -58,7 +66,6 @@
       color: var(--muted);
     }
 
-    /* ── Main ── */
     main {
       max-width: 800px;
       width: 100%;
@@ -84,11 +91,7 @@
       height: 1px;
       background: var(--border-soft);
     }
-    .grid-label.section-break {
-      margin-top: 36px;
-    }
 
-    /* ── Cards ── */
     .cards { display: flex; flex-direction: column; gap: 12px; }
 
     .card {
@@ -165,7 +168,6 @@
       transform: translateX(3px);
     }
 
-    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 24px;
@@ -178,81 +180,52 @@
 <body>
 
   <header>
+    <a href="index.html" class="home-link">← Índice principal</a>
     <div class="header-eyebrow">TC2005B.501</div>
-    <h1>Índice principal</h1>
-    <p>Selecciona una sección del curso para comenzar.</p>
+    <h1>Semana 6 — JWT y Autenticación</h1>
+    <p>Selecciona un recurso para comenzar.</p>
   </header>
 
   <main>
-    <div class="grid-label">Secciones</div>
+    <div class="grid-label">Semana 06</div>
     <div class="cards">
 
-      <a href="ejercicios-react.html" class="card">
-        <div class="card-num">01</div>
-        <div class="card-body">
-          <div class="card-title">Semana 3 y 4 React</div>
-          <div class="card-desc">Ejercicios guiados de React: estado, props, efectos, fetch y rutas.</div>
-          <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">useState</span>
-            <span class="tag">useEffect</span>
-            <span class="tag">fetch</span>
-            <span class="tag">router</span>
-          </div>
-        </div>
-        <div class="card-arrow">&rarr;</div>
-      </a>
-
-      <a href="tareas-react.html" class="card">
-        <div class="card-num">02</div>
-        <div class="card-body">
-          <div class="card-title">Tareas React</div>
-          <div class="card-desc">Actividades integradoras para practicar componentes, estado, formularios y listas.</div>
-          <div class="card-tags">
-            <span class="tag">React</span>
-            <span class="tag">Vite</span>
-            <span class="tag">TailwindCSS</span>
-            <span class="tag-gray tag">tareas</span>
-          </div>
-        </div>
-        <div class="card-arrow">&rarr;</div>
-      </a>
-
-      <a href="ejercicios-node.html" class="card">
-        <div class="card-num">03</div>
-        <div class="card-body">
-          <div class="card-title">Ejercicios Node.js</div>
-          <div class="card-desc">Ejercicios backend con Express, API REST, Sequelize y base de datos en Neon.</div>
-          <div class="card-tags">
-            <span class="tag">Node.js</span>
-            <span class="tag">Express</span>
-            <span class="tag">Sequelize</span>
-            <span class="tag">Neon</span>
-          </div>
-        </div>
-        <div class="card-arrow">&rarr;</div>
-      </a>
-
-      <a href="ejercicios-jwt.html" class="card">
+      <a href="jwt-auth-flow.html" class="card">
         <div class="card-num">04</div>
         <div class="card-body">
-          <div class="card-title">Semana 6</div>
-          <div class="card-desc">Ejercicios JWT y Autenticación</div>
+          <div class="card-title">Ejemplo JWT</div>
+          <div class="card-desc">Flujo visual de autenticación con JSON Web Tokens entre frontend, backend y base de datos.</div>
           <div class="card-tags">
             <span class="tag">JWT</span>
             <span class="tag">auth</span>
-            <span class="tag">Bearer</span>
             <span class="tag">API REST</span>
+            <span class="tag">localStorage</span>
           </div>
         </div>
-        <div class="card-arrow">&rarr;</div>
+        <div class="card-arrow">→</div>
+      </a>
+
+      <a href="ejercicio-jwt-auth-api.html" class="card">
+        <div class="card-num">05</div>
+        <div class="card-body">
+          <div class="card-title">Práctica — API con bcrypt y JWT</div>
+          <div class="card-desc">Registro con hash, login con token, middleware de verificación y ruta de perfil protegida.</div>
+          <div class="card-tags">
+            <span class="tag">Express</span>
+            <span class="tag">bcryptjs</span>
+            <span class="tag">jsonwebtoken</span>
+            <span class="tag">middleware</span>
+            <span class="tag-gray tag">paso a paso</span>
+          </div>
+        </div>
+        <div class="card-arrow">→</div>
       </a>
 
     </div>
   </main>
 
   <footer>
-    TC2005B · Uso interno
+    Ejercicios JWT · Uso interno
   </footer>
 
 </body>

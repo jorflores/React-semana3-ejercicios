@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Práctica — Autenticación con bcrypt y JWT</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+      --delete: #dc2626;
+      --post: #0891b2;
+      --put: #d97706;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+
+    .page { max-width: 800px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .tag-time {
+      background: #f3f4f6;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-family: var(--mono);
+    }
+    .step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .step-body {
+      padding: 0 16px 14px 54px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+    .step-body a { color: var(--accent); font-weight: 500; text-decoration: none; }
+    .step-body a:hover { text-decoration: underline; }
+
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f0ec;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--text);
+    }
+    pre {
+      background: #1e1d1b;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+    pre code {
+      font-size: 12.5px;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #d4d0c8;
+      line-height: 1.65;
+    }
+    .code-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin: 10px 0 3px;
+    }
+
+    .note {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: var(--warn-text);
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .note-info {
+      background: var(--accent-bg);
+      border-color: var(--accent-border);
+      color: #3730a3;
+    }
+    .note-green {
+      background: var(--green-bg);
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .note a {
+      color: inherit;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .note a:hover { opacity: 0.85; }
+
+    .routes-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .route-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 1.35fr;
+      border-bottom: 1px solid var(--border-soft);
+      min-height: 56px;
+    }
+    .route-row:last-child { border-bottom: none; }
+    .method {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .method.get { background: var(--green); }
+    .method.post { background: var(--post); }
+    .method.put { background: var(--put); }
+    .method.delete { background: var(--delete); }
+    .path,
+    .route-desc {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    .path {
+      font-family: var(--mono);
+      color: var(--text);
+      background: #fbfaf7;
+    }
+    .route-desc { color: var(--muted); }
+
+    .flow-pre {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media (max-width: 640px) {
+      .route-row { grid-template-columns: 86px 1fr; }
+      .route-desc {
+        grid-column: 1 / -1;
+        border-top: 1px solid var(--border-soft);
+      }
+      .step-body { padding-left: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="ejercicios-jwt.html" class="back-link">&larr; Volver a ejercicios JWT</a>
+
+  <div class="header">
+    <div class="header-eyebrow">Semana 6</div>
+    <h1>API de autenticación: registro, login y ruta protegida</h1>
+    <div class="header-meta">
+      <span class="tag">Express</span>
+      <span class="tag">Sequelize</span>
+      <span class="tag">bcryptjs</span>
+      <span class="tag">jsonwebtoken</span>
+      <span class="tag">middleware</span>
+      <span class="tag tag-time">90–120 min</span>
+    </div>
+  </div>
+
+  <div class="section-label">Objetivo</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">00</div>
+      <div class="step-title">Implementar registro con contraseña hasheada, login que devuelve JWT y una ruta protegida</div>
+    </div>
+    <div class="step-body">
+      <p>Descarga y descomprime el proyecto base de esta práctica: <a href="starter-auth.zip" download><code>starter-auth.zip</code></a>. Trabajarás a partir de ese código; abre la carpeta resultante en tu editor y ejecuta los pasos siguientes desde ahí (backend y, si aplica, frontend incluidos en el ZIP).</p>
+      <div class="note">Dentro de <code>backend/</code>, el archivo <code>.env</code> del starter ya declara <code>DATABASE_URL</code>, pero el valor viene vacío. Debes pegar ahí la cadena de conexión real de tu base de datos para que el servidor del backend pueda conectarse. Una opción rápida es crear una instancia gratuita de <strong>PostgreSQL</strong> en <a href="https://render.com" target="_blank" rel="noopener noreferrer">Render</a>, copiar la URL que te dan y asignarla a <code>DATABASE_URL</code> en el <code>.env</code> del backend.</div>
+      <p>Construirás (o completarás) un flujo donde el backend nunca guarda la contraseña en texto plano, emite un token firmado al iniciar sesión y exige ese token para leer el perfil del usuario autenticado.</p>
+      <p>El starter ya incluye Express con Sequelize y un modelo <code>Usuario</code> con campos como <code>nombre</code>, <code>email</code> y <code>password</code>. Ajusta nombres de archivos solo si tu descompresión o editor muestra rutas distintas.</p>
+      <div class="note note-green">La primera vez, en la carpeta <code>backend/</code> ejecuta <code>npm install</code> (el <code>package.json</code> ya declara <code>bcryptjs</code> y <code>jsonwebtoken</code>). Si el proyecto trae frontend, instala dependencias allí también según el README del starter.</div>
+      <div class="note note-info">Si tu proyecto usa <code>import</code> y <code>export</code> en lugar de <code>require</code> y <code>module.exports</code>, traduce la sintaxis; la lógica es la misma.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Rutas que implementarás</div>
+  <div class="routes-card">
+    <div class="route-row">
+      <div class="method post">POST</div>
+      <div class="path">/api/auth/registro</div>
+      <div class="route-desc">Crear usuario con contraseña hasheada</div>
+    </div>
+    <div class="route-row">
+      <div class="method post">POST</div>
+      <div class="path">/api/auth/login</div>
+      <div class="route-desc">Validar credenciales y devolver JWT</div>
+    </div>
+    <div class="route-row">
+      <div class="method get">GET</div>
+      <div class="path">/api/usuarios/perfil</div>
+      <div class="route-desc">Datos del usuario autenticado (requiere token)</div>
+    </div>
+  </div>
+
+  <div class="section-label">Implementación</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">01</div>
+      <div class="step-title">Middleware que verifica el token</div>
+    </div>
+    <div class="step-body">
+      <p>Abre <code>middleware/verificarToken.js</code> en el backend del starter (o la ruta equivalente). Completa la función según los comentarios <code>TODO</code>.</p>
+      <div class="code-label">middleware/verificarToken.js</div>
+      <pre><code>const jwt = require('jsonwebtoken');
+
+const verificarToken = (req, res, next) =&gt; {
+  // TODO 1: Extraer el token del header Authorization (formato: Bearer &lt;token&gt;)
+
+  // TODO 2: Si no hay token, responder 401 { error: 'Token requerido' }
+
+  // TODO 3: Verificar el token con jwt.verify() usando JWT_SECRET
+
+  // TODO 4: Si es válido, guardar el payload en req.usuario y llamar next()
+
+  // TODO 5: Si falla, responder 401 { error: 'Token inválido o expirado' }
+};
+
+module.exports = verificarToken;</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">02</div>
+      <div class="step-title">Completar registro y login en authController.js</div>
+    </div>
+    <div class="step-body">
+      <p>Abre <code>controllers/authController.js</code> en el backend del starter (o la ruta equivalente). El archivo ya importa lo necesario y declara <code>registro</code> y <code>login</code>; sustituye los comentarios <code>TODO</code> por tu implementación.</p>
+      <div class="code-label">controllers/authController.js</div>
+      <pre><code>const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const Usuario = require('../models/Usuario');
+
+exports.registro = async (req, res) =&gt; {
+  const { nombre, email, password } = req.body;
+  try {
+    // TODO 1: Hashear el password con bcrypt (saltRounds: 10)
+
+    // TODO 2: Crear el usuario en la BD con Usuario.create()
+    //         Usar el password hasheado, no el original
+
+    // TODO 3: Responder con status 201 y { mensaje: 'Usuario creado' }
+
+  } catch (err) {
+    res.status(400).json({ error: 'Error al crear usuario' });
+  }
+};
+
+exports.login = async (req, res) =&gt; {
+  const { email, password } = req.body;
+  try {
+    // TODO 4: Buscar el usuario por email con Usuario.findOne()
+
+    // TODO 5: Si no existe, responder 401 { error: 'Credenciales inválidas' }
+
+    // TODO 6: Comparar el password con bcrypt.compare()
+
+    // TODO 7: Si no coincide, responder 401 { error: 'Credenciales inválidas' }
+
+    // TODO 8: Firmar un JWT con { id, email } usando JWT_SECRET (expiry: '7d')
+
+    // TODO 9: Responder con { token }
+
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">03</div>
+      <div class="step-title">Proteger la ruta GET /perfil</div>
+    </div>
+    <div class="step-body">
+      <p>Abre el archivo de rutas de usuario del starter (por ejemplo <code>routes/usuarioRoutes.js</code>). Completa la ruta <code>GET /perfil</code> según los comentarios <code>TODO</code>.</p>
+      <div class="code-label">routes/usuarioRoutes.js (extracto)</div>
+      <pre><code>const router = require('express').Router();
+
+router.get('/perfil', async (req, res) =&gt; {
+  // TODO: Add verificarToken middleware to protect this route
+  // TODO: Get the user id from req.usuario.id
+  // TODO: Find user with Usuario.findByPk() returning only id, nombre, email
+  res.json({ mensaje: 'Ruta no protegida aún' });
+});
+
+module.exports = router;</code></pre>
+    </div>
+  </div>
+
+  <div class="section-label">Comprobar el backend</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">04</div>
+      <div class="step-title">Pruebas con Postman, Bruno o Insomnia</div>
+    </div>
+    <div class="step-body">
+      <p>Sustituye el host y el prefijo si tu API usa otra base URL; abajo se usa <code>http://localhost:3000/api</code>.</p>
+      <ul>
+        <li><strong>Registro:</strong> <code>POST .../auth/registro</code> con cuerpo JSON <code>{ "nombre": "...", "email": "...", "password": "123456" }</code> → espera <code>201</code> y mensaje de éxito.</li>
+        <li><strong>Login:</strong> <code>POST .../auth/login</code> con <code>{ "email", "password" }</code> → espera <code>200</code> y un objeto con <code>token</code>.</li>
+        <li><strong>Perfil con token:</strong> <code>GET .../usuarios/perfil</code> con encabezado <code>Authorization: Bearer &lt;token del login&gt;</code> → espera <code>200</code> y <code>id</code>, <code>nombre</code>, <code>email</code> (sin contraseña).</li>
+        <li><strong>Perfil sin token:</strong> misma petición sin encabezado → <code>401</code> con mensaje de token requerido.</li>
+        <li><strong>Token inválido:</strong> <code>Bearer tokeninvalido123</code> → <code>401</code> con mensaje de token inválido o expirado.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-label">Comprobar el frontend (si aplica)</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">05</div>
+      <div class="step-title">Flujo en el navegador</div>
+    </div>
+    <div class="step-body">
+      <p><strong>CORS</strong> (Cross-Origin Resource Sharing): el navegador trata como distintos orígenes dos URLs con distinto protocolo, host o puerto. Si la app React corre en <code>http://localhost:5173</code> y el API en <code>http://localhost:3000</code>, las peticiones <code>axios</code> son &quot;entre orígenes&quot; y el navegador puede bloquearlas si el backend no responde con las cabeceras que permiten ese origen.</p>
+      <p>En el <strong>backend</strong>, en <code>app.js</code> (o el punto de entrada de Express), registra CORS <strong>antes</strong> de montar rutas y de <code>express.json()</code>, para que todas las respuestas incluyan la política adecuada. Con el paquete <code>cors</code> instalado, una forma habitual en desarrollo es:</p>
+      <div class="code-label">Backend — app.js (extracto)</div>
+      <pre><code>import cors from 'cors';
+// ...
+app.use(cors());</code></pre>
+      <p>Si tu backend usa <code>require</code>, equivale a <code>const cors = require('cors');</code> y luego <code>app.use(cors());</code>.</p>
+      <div class="note note-info">En producción suele acotarse el origen (por ejemplo solo el dominio del frontend). <code>cors()</code> sin opciones es cómodo para practicar en local.</div>
+      <p>Si tu proyecto incluye Vite en <code>http://localhost:5173</code> con pantallas de registro, login y perfil:</p>
+      <ul>
+        <li>Registro: al enviar el formulario, deberías terminar en la ruta de login.</li>
+        <li>Login: tras éxito, guarda el token (por ejemplo <code>localStorage.setItem('token', token)</code>) y navega al perfil.</li>
+        <li>En las herramientas de desarrollo, pestaña Aplicación → almacenamiento local, verifica que exista la clave <code>token</code>.</li>
+        <li>Perfil autenticado: debe mostrar nombre y email obtenidos del API.</li>
+        <li>Cierre de sesión: al limpiar el token y salir, al entrar manualmente a <code>/perfil</code> debería redirigir al login si implementaste esa protección en el router.</li>
+      </ul>
+      <div class="note note-info">El frontend debe enviar el mismo encabezado <code>Authorization</code> que probaste en Postman en las peticiones al perfil.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Mapa del flujo</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">06</div>
+      <div class="step-title">De registro a perfil protegido</div>
+    </div>
+    <div class="step-body">
+      <pre class="flow-pre"><code>REGISTRO
+  Formulario → POST /api/auth/registro
+    → bcrypt.hash(password, 10)
+      → Usuario.create({ nombre, email, password: hash })
+        → 201 { mensaje } → redirigir a login
+
+LOGIN
+  Formulario → POST /api/auth/login
+    → Usuario.findOne({ email })
+      → bcrypt.compare(password, usuario.password)
+        → jwt.sign({ id, email }, process.env.JWT_SECRET, { expiresIn: '7d' })
+          → 200 { token } → localStorage.setItem('token', token) → ir a perfil
+
+RUTA PROTEGIDA
+  Perfil → GET /api/usuarios/perfil + Authorization: Bearer &lt;token&gt;
+    → verificarToken → jwt.verify → req.usuario
+      → Usuario.findByPk(req.usuario.id, { attributes: sin password })
+        → 200 { id, nombre, email }</code></pre>
+    </div>
+  </div>
+
+  <div class="section-label">Integración en el frontend</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">07</div>
+      <div class="step-title">LoginForm.js: de las credenciales al token</div>
+    </div>
+    <div class="step-body">
+      <p>En el frontend del starter, el inicio de sesión suele vivir en <code>LoginForm.js</code>. Ese componente mantiene el correo y la contraseña en estado local, llama al API con <code>axios</code> y usa la URL base definida en <code>import.meta.env.VITE_API_URL</code> (archivo <code>.env</code> del proyecto Vite, por ejemplo <code>VITE_API_URL=http://localhost:3000</code>).</p>
+      <p>La pieza que conecta el formulario con el backend es <strong>handleLogin</strong>: envía <code>email</code> y <code>password</code>, espera <code>{ token }</code>, guarda el token en <code>localStorage</code> para las rutas protegidas y redirige a <code>/perfil</code>.</p>
+      <div class="code-label">LoginForm.js — imports, estado y handleLogin</div>
+      <pre><code>import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+export default function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async () =&gt; {
+    setError('');
+    try {
+      // 1. Enviamos las credenciales al backend
+      const res = await axios.post(
+        import.meta.env.VITE_API_URL + '/api/auth/login',
+        { email, password }
+      );
+
+      // 2. El backend responde con { token } si las credenciales son correctas
+      // 3. Guardamos el token en localStorage para usarlo en rutas protegidas
+      localStorage.setItem('token', res.data.token);
+
+      // 4. Redirigimos al usuario a su perfil
+      navigate('/perfil');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error de conexión');
+    }
+  };
+
+  // ... return: inputs controlados (value + onChange), botón con onClick={handleLogin}, &lt;Link to="/registro" /&gt;, etc.
+}</code></pre>
+      <p>En el <code>return</code> del mismo archivo, los inputs usan el estado (<code>value</code> / <code>onChange</code>), el botón &quot;Entrar&quot; dispara <code>handleLogin</code> con <code>onClick={handleLogin}</code>, y puedes ofrecer el enlace a registro con <code>&lt;Link to="/registro"&gt;</code> de React Router.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">08</div>
+      <div class="step-title">RegistryForm.js: alta de usuario y salto al login</div>
+    </div>
+    <div class="step-body">
+      <p>El registro suele estar en <code>RegistryForm.js</code> (nombre del componente en el starter). Guarda <code>nombre</code>, <code>email</code> y <code>password</code> en estado, reutiliza <code>axios</code> y la base del API en <code>import.meta.env.VITE_API_URL</code> (aquí como constante <code>apiBase</code> para armar la URL con template string).</p>
+      <p><strong>handleRegister</strong> hace <code>POST /api/auth/registro</code> con el cuerpo esperado por el backend. Si la petición termina bien, no hace falta guardar token todavía: lo habitual es <code>navigate('/login')</code> para que el usuario inicie sesión en la pantalla siguiente.</p>
+      <div class="code-label">RegistryForm.js — imports, apiBase, estado y handleRegister</div>
+      <pre><code>import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const apiBase = import.meta.env.VITE_API_URL;
+
+export default function RegistryForm() {
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleRegister = async () =&gt; {
+    setError('');
+    try {
+      await axios.post(`${apiBase}/api/auth/registro`, {
+        nombre,
+        email,
+        password,
+      });
+      navigate('/login');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error de conexión');
+    }
+  };
+
+  // ... return: campos nombre / email / password, botón con onClick={handleRegister}, &lt;Link to="/login"&gt;, etc.
+}</code></pre>
+      <p>En el <code>return</code>, los tres inputs enlazan con <code>nombre</code>, <code>email</code> y <code>password</code>; el botón llama <code>onClick={handleRegister}</code>; el pie suele enlazar a <code>&lt;Link to="/login"&gt;</code> para quien ya tenga cuenta.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">09</div>
+      <div class="step-title">App.js: proteger la ruta /perfil en el router</div>
+    </div>
+    <div class="step-body">
+      <p>En la raíz del frontend (por ejemplo <code>App.jsx</code> o <code>App.js</code>), React Router define las rutas públicas y la de perfil. El punto sensible es <strong><code>/perfil</code></strong>: solo debe mostrarse el componente <code>Perfil</code> si en <code>localStorage</code> ya existe el <code>token</code> que guardaste al hacer login; si no, se redirige a <code>/login</code> con <code>&lt;Navigate to="/login" replace /&gt;</code> para que el usuario no vea una pantalla vacía ni datos sin autenticación.</p>
+      <p>Esa comprobación es <strong>solo en el cliente</strong>: mejora la experiencia y evita mostrar la UI del perfil sin sesión, pero la seguridad real sigue en el backend con <code>verificarToken</code> en las peticiones al API.</p>
+      <div class="code-label">App.jsx o App.js</div>
+      <pre><code>import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LoginForm from './components/LoginForm.jsx';
+import RegistryForm from './components/RegistryForm.jsx';
+import Perfil from './pages/Perfil.jsx';
+import Home from './pages/Home.jsx';
+
+function App() {
+  // Verificamos si existe un token guardado en localStorage
+  const token = localStorage.getItem('token');
+  return (
+    &lt;BrowserRouter&gt;
+      &lt;Routes&gt;
+        &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+        &lt;Route path="/login" element={&lt;LoginForm /&gt;} /&gt;
+        &lt;Route path="/registro" element={&lt;RegistryForm /&gt;} /&gt;
+        &lt;Route
+          path="/perfil"
+          element={
+            // Ruta protegida: si hay token puede entrar, si no regresa al login
+            // IMPORTANTE: esta verificación es solo visual en el frontend
+            // La verificación real la hace el middleware verificarToken en el backend
+            token ? &lt;Perfil /&gt; : &lt;Navigate to="/login" replace /&gt;
+          }
+        /&gt;
+        &lt;Route path="*" element={&lt;Navigate to="/login" replace /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/BrowserRouter&gt;
+  );
+}
+
+export default App;</code></pre>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
