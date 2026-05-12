@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini ejercicio — jsonwebtoken (firmar y verificar)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-soft: #ede9e2;
+      --text: #1a1917;
+      --muted: #6b6860;
+      --accent: #3d3bcc;
+      --accent-bg: #eeeef9;
+      --accent-border: #c7c6f0;
+      --green-bg: #f0fdf4;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 20px 80px;
+      line-height: 1.7;
+    }
+    .page { max-width: 800px; margin: 0 auto; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--accent); }
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .tag-time {
+      background: #f3f4f6;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-family: var(--mono);
+    }
+    .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .step-body {
+      padding: 0 16px 14px 54px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .step-body p { margin-bottom: 6px; }
+    .step-body ul { margin: 4px 0 6px 16px; }
+    .step-body li { margin-bottom: 3px; }
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f0ec;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--text);
+    }
+    pre {
+      background: #1e1d1b;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+    pre code {
+      font-size: 12.5px;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #d4d0c8;
+      line-height: 1.65;
+    }
+    .code-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin: 10px 0 3px;
+    }
+    .note-info {
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: #3730a3;
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .note-green {
+      background: var(--green-bg);
+      border: 1px solid #bbf7d0;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: #166534;
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    @media (max-width: 640px) {
+      .step-body { padding-left: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="ejercicios-jwt.html" class="back-link">&larr; Volver a ejercicios JWT</a>
+
+  <div class="header">
+    <div class="header-eyebrow">Semana 6</div>
+    <h1>Mini ejercicio: firmar y verificar un JWT con jsonwebtoken</h1>
+    <div class="header-meta">
+      <span class="tag">Node.js</span>
+      <span class="tag">jsonwebtoken</span>
+      <span class="tag">JWT</span>
+      <span class="tag tag-time">15–20 min</span>
+    </div>
+  </div>
+
+  <div class="section-label">Objetivo</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">00</div>
+      <div class="step-title">Ver en consola cómo se crea un token y cómo se valida</div>
+    </div>
+    <div class="step-body">
+      <p>Un <strong>JWT</strong> es un string con tres segmentos separados por punto: cabecera, <strong>payload</strong> (datos como <code>id</code> o <code>email</code>, codificados en base64) y <strong>firma</strong>. La firma depende de un <strong>secreto</strong> compartido: si cambias el payload o el secreto no coincide, <code>jwt.verify</code> falla.</p>
+      <p>Ejercicio aparte del starter de auth: carpeta nueva y Node. Sirve para entender lo que hará después tu ruta de <strong>login</strong> al emitir el token y tu <strong>middleware</strong> al verificarlo.</p>
+      <div class="note-info">En el script usamos un secreto fijo solo para practicar. En el API real usa <code>process.env.JWT_SECRET</code> y nunca subas el secreto al repositorio.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Pasos</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">01</div>
+      <div class="step-title">Proyecto mínimo e instalar jsonwebtoken</div>
+    </div>
+    <div class="step-body">
+      <p>Crea una carpeta (por ejemplo <code>demo-jwt</code>), ábrela en la terminal y ejecuta:</p>
+      <div class="code-label">Terminal</div>
+      <pre><code>npm init -y
+npm install jsonwebtoken</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">02</div>
+      <div class="step-title">Crear el archivo del script</div>
+    </div>
+    <div class="step-body">
+      <p>Crea <code>demo-jwt.js</code> con el siguiente contenido:</p>
+      <div class="code-label">demo-jwt.js</div>
+      <pre><code>const jwt = require('jsonwebtoken');
+
+// Solo para este laboratorio local (en el API: process.env.JWT_SECRET)
+const SECRET = 'demo-secret-laboratorio-jwt';
+
+async function main() {
+  const token = jwt.sign(
+    { id: 42, email: 'alumno@ejemplo.com' },
+    SECRET,
+    { expiresIn: '2h' }
+  );
+
+  console.log('El token tiene tres partes:', token.split('.').length);
+  console.log('Token completo:\n', token);
+  console.log();
+
+  console.log('jwt.decode (no comprueba la firma):', jwt.decode(token));
+  console.log();
+
+  const verificado = jwt.verify(token, SECRET);
+  console.log('jwt.verify con el mismo SECRET:', verificado);
+  console.log();
+
+  try {
+    jwt.verify(token, 'clave-completamente-distinta');
+  } catch (e) {
+    console.log('Secreto incorrecto:', e.name, '-', e.message);
+  }
+
+  const casiExpirado = jwt.sign({ demo: true }, SECRET, { expiresIn: '1s' });
+  console.log('Esperando a que expire el token de 1s...');
+  await new Promise((r) =&gt; setTimeout(r, 1200));
+  try {
+    jwt.verify(casiExpirado, SECRET);
+  } catch (e) {
+    console.log('Token expirado:', e.name, '-', e.message);
+  }
+}
+
+main();</code></pre>
+      <div class="note-info"><code>jwt.decode</code> sirve para inspeccionar el payload; <strong>no</strong> valida la firma. Quien protege rutas debe usar siempre <code>jwt.verify</code> con el mismo secreto con el que se firmó.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">03</div>
+      <div class="step-title">Ejecutar y observar</div>
+    </div>
+    <div class="step-body">
+      <div class="code-label">Terminal</div>
+      <pre><code>node demo-jwt.js</code></pre>
+      <p>Comprueba en la salida que:</p>
+      <ul>
+        <li>El string tiene <strong>tres</strong> bloques separados por <code>.</code></li>
+        <li><code>decode</code> muestra el payload legible (no implica que el token sea confiable).</li>
+        <li><code>verify</code> con el secreto correcto devuelve el objeto del payload.</li>
+        <li>Con un secreto distinto, <code>verify</code> lanza error.</li>
+        <li>Tras un segundo, el token de vida corta ya no pasa <code>verify</code> (expiración).</li>
+      </ul>
+      <div class="note-green">En tu API: el <strong>login</strong> usa <code>jwt.sign</code> para generar el token que envías al cliente; el <strong>middleware</strong> usa <code>jwt.verify</code> con la misma clave que en el login.</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
